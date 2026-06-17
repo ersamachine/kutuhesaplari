@@ -387,7 +387,7 @@ function cariView(){
   }).join(''):'<div class="empty">Henüz müşteri yok.</div>')+'</div>';
   const tlist=TESLIMAT.slice().reverse();
   const thd='<div class="row hd"><div class="grow">MÜŞTERİ</div><div style="width:140px;">KUTU</div><div style="width:70px;text-align:right;">ADET</div><div style="width:80px;text-align:right;">B.FİYAT</div><div style="width:100px;text-align:right;">TUTAR</div><div style="width:100px;text-align:right;">TARİH</div></div>';
-  const tbox='<div class="sec"><div class="lft">'+ic("box",13,"#8A8A8A")+' SON TESLİMATLAR</div></div><div class="box">'+(tlist.length?thd+tlist.map(t=>'<div class="row"><div class="grow nowrap" style="font-weight:600;">'+esc(t.musteri)+'</div>'
+  const tbox='<div class="sec"><div class="lft">'+ic("box",13,"#8A8A8A")+' SON TESLİMATLAR</div></div><div class="box">'+(tlist.length?thd+tlist.map(t=>'<div class="row tap" data-act="teslimDuzelt" data-row="'+t.row+'"><div class="grow nowrap" style="font-weight:600;">'+esc(t.musteri)+'</div>'
     +'<div style="width:140px;"><span class="pill" style="background:'+stColOf(t.kutu)+';color:#fff;">'+esc(t.kutu)+'</span></div>'
     +'<div style="width:70px;text-align:right;font-weight:700;" class="mono">'+(t.adet||0).toLocaleString("tr-TR")+'</div>'
     +'<div style="width:80px;text-align:right;color:var(--muted);" class="mono">'+usd(t.fiyat)+'</div>'
@@ -418,42 +418,51 @@ function sheetOvl(){
      +'<button class="btnred" style="margin-top:16px;" data-act="dolarKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Girişi Kaydet</button></div></div>';
   }
   if(S.sheet==="stokGiris"){
-    const opts=KUTULAR.map(k=>'<option>'+esc(k)+'</option>').join('');
-    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Stok Girişi (Üretim)</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+    const ed=S.sheetData&&S.sheetData.row;
+    const opts=KUTULAR.map(k=>'<option'+((S.sheetData&&S.sheetData.kutu===k)?' selected':'')+'>'+esc(k)+'</option>').join('');
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">'+(ed?"Stok Girişi Düzelt":"Stok Girişi (Üretim)")+'</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
      +'<label class="lbl">Kutu (Marka)</label><select id="sg_kutu" class="field">'+opts+'</select>'
-     +'<label class="lbl">Adet</label><input id="sg_adet" class="field" type="number" inputmode="numeric" placeholder="0">'
-     +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="sg_ack" class="field" placeholder="Örn. Haziran üretimi">'
-     +'<label class="lbl">Tarih</label><input id="sg_tar" class="field" value="'+bugun()+'">'
-     +'<button class="btnred" style="margin-top:16px;" data-act="stokGirisKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Stok Girişini Kaydet</button></div></div>';
+     +'<label class="lbl">Adet</label><input id="sg_adet" class="field" type="number" inputmode="numeric" placeholder="0" value="'+((S.sheetData&&S.sheetData.adet)||"")+'">'
+     +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="sg_ack" class="field" placeholder="Örn. Haziran üretimi" value="'+esc((S.sheetData&&S.sheetData.aciklama)||"")+'">'
+     +'<label class="lbl">Tarih</label><input id="sg_tar" class="field" value="'+esc((S.sheetData&&S.sheetData.tarih)||bugun())+'">'
+     +'<button class="btnred" style="margin-top:16px;" data-act="'+(ed?"stokGirisGuncelle":"stokGirisKaydet")+'" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+(ed?" Güncelle":" Stok Girişini Kaydet")+'</button>'
+     +(ed?'<button class="btn b-no" style="width:100%;justify-content:center;margin-top:9px;" data-act="stokGirisSil" data-row="'+S.sheetData.row+'">'+ic("x",14,"#ff8a8a")+' Bu Girişi Sil</button>':'')
+     +'</div></div>';
   }
   if(S.sheet==="teslim"){
-    const opts=KUTULAR.map(k=>'<option>'+esc(k)+'</option>').join('');
+    const ed=S.sheetData&&S.sheetData.row;
+    const opts=KUTULAR.map(k=>'<option'+((S.sheetData&&S.sheetData.kutu===k)?' selected':'')+'>'+esc(k)+'</option>').join('');
     const muso=allMusteri().map(m=>'<option value="'+esc(m)+'">').join('');
-    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Teslimat Ekle</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
-     +'<label class="lbl">Müşteri</label><input id="ts_mus" class="field" placeholder="Müşteri adı" list="muslist"'+((S.sheetData&&S.sheetData.musteri)?' value="'+esc(S.sheetData.musteri)+'"':'')+'><datalist id="muslist">'+muso+'</datalist>'
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">'+(ed?"Teslimat Düzelt":"Teslimat Ekle")+'</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+     +'<label class="lbl">Müşteri</label><input id="ts_mus" class="field" placeholder="Müşteri adı" list="muslist" value="'+esc((S.sheetData&&S.sheetData.musteri)||"")+'"><datalist id="muslist">'+muso+'</datalist>'
      +'<label class="lbl">Kutu (Marka)</label><select id="ts_kutu" class="field" onchange="tsStok()">'+opts+'</select>'
      +'<div id="ts_stok" style="font-size:11px;color:var(--muted);margin-top:5px;"></div>'
-     +'<div class="two"><div><label class="lbl">Adet</label><input id="ts_adet" class="field" type="number" inputmode="numeric" placeholder="0" oninput="tsTutar()"></div>'
-     +'<div><label class="lbl">Birim Fiyat (USD)</label><input id="ts_fiyat" class="field" type="number" inputmode="decimal" placeholder="0" oninput="tsTutar()"></div></div>'
+     +'<div class="two"><div><label class="lbl">Adet</label><input id="ts_adet" class="field" type="number" inputmode="numeric" placeholder="0" value="'+((S.sheetData&&S.sheetData.adet)||"")+'" oninput="tsTutar()"></div>'
+     +'<div><label class="lbl">Birim Fiyat (USD)</label><input id="ts_fiyat" class="field" type="number" inputmode="decimal" placeholder="0" value="'+((S.sheetData&&S.sheetData.fiyat)||"")+'" oninput="tsTutar()"></div></div>'
      +'<div class="kpi" style="margin-top:10px;"><div class="t">TOPLAM TUTAR (CARİYE YAZILACAK)</div><div class="v" id="ts_tutar" style="color:#F5A623;">$0</div></div>'
-     +'<label class="lbl">Tarih</label><input id="ts_tar" class="field" value="'+bugun()+'">'
-     +'<button class="btnred" style="margin-top:16px;" data-act="teslimKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Teslimatı Kaydet</button></div></div>';
+     +'<label class="lbl">Tarih</label><input id="ts_tar" class="field" value="'+esc((S.sheetData&&S.sheetData.tarih)||bugun())+'">'
+     +'<button class="btnred" style="margin-top:16px;" data-act="'+(ed?"teslimGuncelle":"teslimKaydet")+'" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+(ed?" Güncelle":" Teslimatı Kaydet")+'</button>'
+     +(ed?'<button class="btn b-no" style="width:100%;justify-content:center;margin-top:9px;" data-act="teslimSil" data-row="'+S.sheetData.row+'">'+ic("x",14,"#ff8a8a")+' Bu Teslimatı Sil</button>':'')
+     +'</div></div>';
   }
   if(S.sheet==="tahsil"){
+    const ed=S.sheetData&&S.sheetData.row;
     const muso=allMusteri().map(m=>'<option'+((S.sheetData&&S.sheetData.musteri===m)?' selected':'')+'>'+esc(m)+'</option>').join('');
-    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Tahsilat Ekle</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">'+(ed?"Tahsilat Düzelt":"Tahsilat Ekle")+'</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
      +'<label class="lbl">Müşteri</label><select id="th_mus" class="field">'+muso+'</select>'
-     +'<label class="lbl">Tutar (USD)</label><input id="th_tutar" class="field" type="number" inputmode="decimal" placeholder="0">'
-     +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="th_ack" class="field" placeholder="Örn. havale / nakit">'
-     +'<label class="lbl">Tarih</label><input id="th_tar" class="field" value="'+bugun()+'">'
-     +'<button class="btnred" style="margin-top:16px;" data-act="tahsilKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Tahsilatı Kaydet</button></div></div>';
+     +'<label class="lbl">Tutar (USD)</label><input id="th_tutar" class="field" type="number" inputmode="decimal" placeholder="0" value="'+((S.sheetData&&S.sheetData.tutar)||"")+'">'
+     +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="th_ack" class="field" placeholder="Örn. havale / nakit" value="'+esc((S.sheetData&&S.sheetData.aciklama)||"")+'">'
+     +'<label class="lbl">Tarih</label><input id="th_tar" class="field" value="'+esc((S.sheetData&&S.sheetData.tarih)||bugun())+'">'
+     +'<button class="btnred" style="margin-top:16px;" data-act="'+(ed?"tahsilGuncelle":"tahsilKaydet")+'" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+(ed?" Güncelle":" Tahsilatı Kaydet")+'</button>'
+     +(ed?'<button class="btn b-no" style="width:100%;justify-content:center;margin-top:9px;" data-act="tahsilSil" data-row="'+S.sheetData.row+'">'+ic("x",14,"#ff8a8a")+' Bu Tahsilatı Sil</button>':'')
+     +'</div></div>';
   }
   if(S.sheet==="stokDetay"){
     const k=(S.sheetData||{}).kutu||"";
     const row=(KUTUSTOK||[]).filter(x=>x.kutu===k)[0]||{uretilen:0,teslim:0,stokta:0};
-    const har=(STOKGIRIS||[]).filter(g=>g.kutu===k).map(g=>({tarih:g.tarih,txt:"Stok girişi"+(g.aciklama?" · "+g.aciklama:""),adet:g.adet,tip:"g"}))
-      .concat((TESLIMAT||[]).filter(t=>t.kutu===k).map(t=>({tarih:t.tarih,txt:"Teslimat · "+t.musteri,adet:t.adet,tip:"c"})));
-    const rows=har.length?har.map(h=>'<div class="row"><div class="grow"><div style="font-weight:600;">'+esc(h.txt)+'</div><div style="font-size:11px;color:var(--muted);">'+esc(h.tarih)+'</div></div><div style="text-align:right;font-weight:800;color:'+(h.tip==="c"?'#FF6B5E':'#2ED573')+';" class="mono">'+(h.tip==="c"?'−':'+')+(h.adet||0).toLocaleString("tr-TR")+'</div></div>').join(''):'<div class="empty">Hareket yok.</div>';
+    const har=(STOKGIRIS||[]).filter(g=>g.kutu===k).map(g=>({row:g.row,tarih:g.tarih,txt:"Stok girişi"+(g.aciklama?" · "+g.aciklama:""),adet:g.adet,tip:"g"}))
+      .concat((TESLIMAT||[]).filter(t=>t.kutu===k).map(t=>({row:0,tarih:t.tarih,txt:"Teslimat · "+t.musteri,adet:t.adet,tip:"c"})));
+    const rows=har.length?har.map(h=>'<div class="row'+(h.tip==="g"?' tap" data-act="stokDuzelt" data-row="'+h.row+'"':'"')+'><div class="grow"><div style="font-weight:600;">'+esc(h.txt)+'</div><div style="font-size:11px;color:var(--muted);">'+esc(h.tarih)+(h.tip==="g"?' · düzenle':'')+'</div></div><div style="text-align:right;font-weight:800;color:'+(h.tip==="c"?'#FF6B5E':'#2ED573')+';" class="mono">'+(h.tip==="c"?'−':'+')+(h.adet||0).toLocaleString("tr-TR")+'</div></div>').join(''):'<div class="empty">Hareket yok.</div>';
     return '<div class="ovl"><div class="modal" style="max-width:500px;"><div class="mh"><div class="t">'+esc(k)+' · Stok</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
      +'<div class="kpis" style="grid-template-columns:repeat(3,1fr);gap:9px;">'
      +'<div class="kpi" style="padding:11px;"><div class="t">ÜRETİLEN</div><div class="v" style="font-size:17px;">'+(row.uretilen||0).toLocaleString("tr-TR")+'</div></div>'
@@ -471,10 +480,10 @@ function sheetOvl(){
   }
   if(S.sheet==="musDetay"){
     const m=(S.sheetData||{}).musteri||"";
-    const har=TESLIMAT.filter(t=>t.musteri===m).map(t=>({tarih:t.tarih,txt:t.kutu+" · "+(t.adet||0).toLocaleString("tr-TR")+" adet × "+usd(t.fiyat),tutar:t.tutar||0}))
-      .concat(TAHSILAT.filter(t=>t.musteri===m).map(t=>({tarih:t.tarih,txt:"Tahsilat"+(t.aciklama?" · "+t.aciklama:""),tutar:-(t.tutar||0)})));
+    const har=TESLIMAT.filter(t=>t.musteri===m).map(t=>({row:t.row,kind:"t",item:t,tarih:t.tarih,txt:t.kutu+" · "+(t.adet||0).toLocaleString("tr-TR")+" adet × "+usd(t.fiyat),tutar:t.tutar||0}))
+      .concat(TAHSILAT.filter(t=>t.musteri===m).map(t=>({row:t.row,kind:"h",item:t,tarih:t.tarih,txt:"Tahsilat"+(t.aciklama?" · "+t.aciklama:""),tutar:-(t.tutar||0)})));
     const info=(MUSTERILER.filter(x=>x.ad===m)[0]||{});
-    const rows=har.length?har.map(h=>'<div class="row"><div class="grow"><div style="font-weight:600;">'+esc(h.txt)+'</div><div style="font-size:11px;color:var(--muted);">'+esc(h.tarih)+'</div></div><div style="text-align:right;font-weight:800;color:'+(h.tutar<0?'#2ED573':'#fff')+';" class="mono">'+(h.tutar<0?'−':'+')+usd(Math.abs(h.tutar)).slice(1)+'</div></div>').join(''):'<div class="empty">Hareket yok.</div>';
+    const rows=har.length?har.map(h=>'<div class="row tap" data-act="'+(h.kind==="t"?"teslimDuzelt":"tahsilDuzelt")+'" data-row="'+h.row+'"><div class="grow"><div style="font-weight:600;">'+esc(h.txt)+'</div><div style="font-size:11px;color:var(--muted);">'+esc(h.tarih)+' · düzenle</div></div><div style="text-align:right;font-weight:800;color:'+(h.tutar<0?'#2ED573':'#fff')+';" class="mono">'+(h.tutar<0?'−':'+')+usd(Math.abs(h.tutar)).slice(1)+'</div></div>').join(''):'<div class="empty">Hareket yok.</div>';
     return '<div class="ovl"><div class="modal" style="max-width:520px;"><div class="mh"><div class="t">'+esc(m)+'</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
      +(info.tel?'<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">'+esc(info.tel)+(info.not?' · '+esc(info.not):'')+'</div>':'')
      +'<div class="kpis" style="grid-template-columns:repeat(3,1fr);gap:9px;">'
@@ -536,6 +545,9 @@ document.addEventListener("click",async e=>{
   if(a==="tahsilAc"){S.sheetData=null;S.sheet="tahsil";render();return;}
   if(a==="tahsilAcM"){S.sheetData={musteri:el.getAttribute("data-m")};S.sheet="tahsil";render();return;}
   if(a==="musDetay"){S.sheetData={musteri:el.getAttribute("data-m")};S.sheet="musDetay";render();return;}
+  if(a==="teslimDuzelt"){const r=+el.getAttribute("data-row");const t=TESLIMAT.filter(x=>x.row===r)[0];if(t){S.sheetData={row:r,musteri:t.musteri,kutu:t.kutu,adet:t.adet,fiyat:t.fiyat,tarih:t.tarih};S.sheet="teslim";render();}return;}
+  if(a==="tahsilDuzelt"){const r=+el.getAttribute("data-row");const t=TAHSILAT.filter(x=>x.row===r)[0];if(t){S.sheetData={row:r,musteri:t.musteri,tutar:t.tutar,aciklama:t.aciklama,tarih:t.tarih};S.sheet="tahsil";render();}return;}
+  if(a==="stokDuzelt"){const r=+el.getAttribute("data-row");const g=STOKGIRIS.filter(x=>x.row===r)[0];if(g){S.sheetData={row:r,kutu:g.kutu,adet:g.adet,aciklama:g.aciklama,tarih:g.tarih};S.sheet="stokGiris";render();}return;}
   if(a==="sheetclose"){S.sheet=null;S.sheetData=null;render();return;}
   if(a==="bozdurKaydet"){
     const usdv=parseFloat(($("bz_usd").value||"").replace(",","."))||0, kur=parseFloat(($("bz_kur").value||"").replace(",","."))||0, tar=$("bz_tar").value;
@@ -586,6 +598,45 @@ document.addEventListener("click",async e=>{
     try{const j=await api("musteriEkle",{data:{ad:ad,tel:tel,not:not}});
       if(j.ok===false){toast(j.error||"Eklenemedi");S.busy=false;return;}
       toast("Müşteri eklendi");S.sheet=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="teslimGuncelle"){
+    const mus=($("ts_mus").value||"").trim(),kutu=$("ts_kutu").value,adet=parseInt(($("ts_adet").value||"").replace(/\D/g,""))||0,fiyat=parseFloat(($("ts_fiyat").value||"").replace(",","."))||0,tar=$("ts_tar").value;
+    if(!(adet>0)){toast("Adet girin");return;} if(S.busy)return;S.busy=true;
+    try{const j=await api("teslimatGuncelle",{data:{row:S.sheetData.row,musteri:mus,kutu:kutu,adet:adet,fiyat:fiyat,tarih:tar}});
+      if(j.ok===false){toast(j.error||"Güncellenemedi");S.busy=false;return;}
+      toast("Teslimat güncellendi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="teslimSil"){
+    if(!confirm("Bu teslimat silinsin mi?"))return; if(S.busy)return;S.busy=true;
+    try{const j=await api("teslimatSil",{data:{row:+el.getAttribute("data-row")}});
+      if(j.ok===false){toast(j.error||"Silinemedi");S.busy=false;return;}
+      toast("Teslimat silindi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="tahsilGuncelle"){
+    const mus=$("th_mus").value,tutar=parseFloat(($("th_tutar").value||"").replace(",","."))||0,ack=$("th_ack").value,tar=$("th_tar").value;
+    if(!(tutar>0)){toast("Tutar girin");return;} if(S.busy)return;S.busy=true;
+    try{const j=await api("tahsilatGuncelle",{data:{row:S.sheetData.row,musteri:mus,tutar:tutar,aciklama:ack,tarih:tar}});
+      if(j.ok===false){toast(j.error||"Güncellenemedi");S.busy=false;return;}
+      toast("Tahsilat güncellendi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="tahsilSil"){
+    if(!confirm("Bu tahsilat silinsin mi?"))return; if(S.busy)return;S.busy=true;
+    try{const j=await api("tahsilatSil",{data:{row:+el.getAttribute("data-row")}});
+      if(j.ok===false){toast(j.error||"Silinemedi");S.busy=false;return;}
+      toast("Tahsilat silindi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="stokGirisGuncelle"){
+    const kutu=$("sg_kutu").value,adet=parseInt(($("sg_adet").value||"").replace(/\D/g,""))||0,ack=$("sg_ack").value,tar=$("sg_tar").value;
+    if(!(adet>0)){toast("Adet girin");return;} if(S.busy)return;S.busy=true;
+    try{const j=await api("stokGirisGuncelle",{data:{row:S.sheetData.row,kutu:kutu,adet:adet,aciklama:ack,tarih:tar}});
+      if(j.ok===false){toast(j.error||"Güncellenemedi");S.busy=false;return;}
+      toast("Stok girişi güncellendi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="stokGirisSil"){
+    if(!confirm("Bu stok girişi silinsin mi?"))return; if(S.busy)return;S.busy=true;
+    try{const j=await api("stokGirisSil",{data:{row:+el.getAttribute("data-row")}});
+      if(j.ok===false){toast(j.error||"Silinemedi");S.busy=false;return;}
+      toast("Stok girişi silindi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
     }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
 });
 document.addEventListener("change",e=>{
