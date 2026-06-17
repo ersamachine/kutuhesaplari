@@ -79,7 +79,7 @@ i.ic svg{display:block;}
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));
-const P={grid:"M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",wallet:"M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2H5a2 2 0 0 0-2 2zM3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM16 12.5h3v3h-3a1.5 1.5 0 0 1 0-3z",check:"M20 6 9 17l-5-5",receipt:"M5 3v18l2-1.5L9 21l2-1.5L13 21l2-1.5L17 21l2-1.5V3l-2 1.5L15 3l-2 1.5L11 3 9 4.5 7 3zM8 8h8M8 12h8",cash:"M2 6h20v12H2zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6M6 9v.01M18 15v.01",minus:"M5 12h14",clock:"M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 7v5l3.5 2",logout:"M16 17l5-5-5-5M21 12H9M12 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6",x:"M18 6 6 18M6 6l12 12",alert:"M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",plus:"M12 5v14M5 12h14",refresh:"M21 12a9 9 0 1 1-2.6-6.3M21 4v5h-5",cl:"m15 6-6 6 6 6",bank:"M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3",chart:"M3 3v18h18M7 15l4-5 3 3 5-7",pkg:"M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8",send:"M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z",box:"M21 8 12 3 3 8m18 0-9 5m9-5v8l-9 5m0-8L3 8m9 5v8M3 8v8l9 5",coins:"M8 14a6 6 0 1 0 0-12 6 6 0 0 0 0 12M16 22a6 6 0 1 0 0-12 6 6 0 0 0 0 12",undo:"M3 7v6h6M3 13a9 9 0 1 0 3-7.7L3 8",cr:"m9 6 6 6-6 6",layers:"M12 2 2 7l10 5 10-5zM2 12l10 5 10-5M2 17l10 5 10-5"};
+const P={grid:"M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",wallet:"M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2H5a2 2 0 0 0-2 2zM3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM16 12.5h3v3h-3a1.5 1.5 0 0 1 0-3z",check:"M20 6 9 17l-5-5",receipt:"M5 3v18l2-1.5L9 21l2-1.5L13 21l2-1.5L17 21l2-1.5V3l-2 1.5L15 3l-2 1.5L11 3 9 4.5 7 3zM8 8h8M8 12h8",cash:"M2 6h20v12H2zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6M6 9v.01M18 15v.01",minus:"M5 12h14",clock:"M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 7v5l3.5 2",logout:"M16 17l5-5-5-5M21 12H9M12 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6",x:"M18 6 6 18M6 6l12 12",alert:"M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",plus:"M12 5v14M5 12h14",refresh:"M21 12a9 9 0 1 1-2.6-6.3M21 4v5h-5",cl:"m15 6-6 6 6 6",bank:"M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3",chart:"M3 3v18h18M7 15l4-5 3 3 5-7",pkg:"M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8",send:"M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z",box:"M21 8 12 3 3 8m18 0-9 5m9-5v8l-9 5m0-8L3 8m9 5v8M3 8v8l9 5",coins:"M8 14a6 6 0 1 0 0-12 6 6 0 0 0 0 12M16 22a6 6 0 1 0 0-12 6 6 0 0 0 0 12",undo:"M3 7v6h6M3 13a9 9 0 1 0 3-7.7L3 8",cr:"m9 6 6 6-6 6",layers:"M12 2 2 7l10 5 10-5zM2 12l10 5 10-5M2 17l10 5 10-5",users:"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"};
 function ic(n,s,c){const d=P[n];if(!d)return"";return '<i class="ic"><svg width="'+(s||16)+'" height="'+(s||16)+'" viewBox="0 0 24 24" fill="none" stroke="'+(c||'#fff')+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d.split('M').filter(Boolean).map(p=>'<path d="M'+p+'"/>').join('')+'</svg></i>';}
 function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2400);}
 function initials(s){s=String(s||"").trim();if(!s)return"Y";const p=s.split(/\s+/);return (p[0][0]+(p[1]?p[1][0]:"")).toUpperCase();}
@@ -91,7 +91,7 @@ const usd=n=>"$"+Math.round(Number(n)||0).toLocaleString("tr-TR");
 let KUTULAR=["Rolex","Michael Kors","Emporio Armani","Versace","Burberry","Tissot","Maurice Lacroix"];
 let URETIM={Rolex:10000};
 let KASA={};
-let STOK=[];
+let KUTUSTOK=[];let STOKGIRIS=[];let MUSTERILER=[];let TESLIMAT=[];let TAHSILAT=[];
 let DATA=[];
 
 const S={authed:false,kod:"",sifre:"",tab:"ozet",f:"all",q:"",selKutu:"Rolex",openKutu:"Rolex",kasaKutu:"Rolex",sheet:null,sheetData:null,busy:false,loading:false,err:""};
@@ -111,7 +111,7 @@ function applyData(j){
   RATE=Number(j.kur)||RATE;
   if(j.kutular&&j.kutular.length){KUTULAR=j.kutular.map(k=>k.marka);URETIM={};j.kutular.forEach(k=>URETIM[k.marka]=Number(k.uretim)||0);}
   KASA=j.kasa||{};
-  STOK=j.stok||[];
+  KUTUSTOK=j.kutuStok||[];STOKGIRIS=j.stokGiris||[];MUSTERILER=j.musteriler||[];TESLIMAT=j.teslimatlar||[];TAHSILAT=j.tahsilatlar||[];
   if(KUTULAR.indexOf(S.selKutu)<0)S.selKutu=KUTULAR[0]||"Rolex";
   if(KUTULAR.indexOf(S.kasaKutu)<0)S.kasaKutu=KUTULAR[0]||"Rolex";
   DATA=(j.masraflar||[]).map(m=>{
@@ -144,8 +144,8 @@ function cntBox(box,st){return DATA.filter(e=>e.kutu===box&&e.durum===st).length
 /* ---- KPI / pill yardımcı ---- */
 function kpi(t,v,x,i,c,al){return '<div class="kpi'+(al?' alert':'')+'"><div class="t">'+ic(i,12,c)+' '+t+'</div><div class="v" style="color:'+c+';">'+v+'</div>'+(x?'<div class="x">'+x+'</div>':'')+'</div>';}
 
-const TABS=[["ozet","Özet","grid"],["masraf","Masraf Onayları","check"],["kutu","Kutu Maliyetleri","box"],["kasa","Kasa & Döviz","coins"],["stok","Stok","layers"]];
-const TITLE={ozet:["Özet","Üretim maliyeti tek bakışta"],masraf:["Masraf Onayları","Personelden gelen masraf satırları — onaylayın / ödeyin"],kutu:["Kutu Maliyetleri","Marka bazında maliyet dökümü"],kasa:["Kasa & Döviz","Her kutu için ayrı kasa · döviz bozdurma"],stok:["Stok Yönetimi","Malzeme giriş/çıkış ve mevcut stok"]};
+const TABS=[["ozet","Özet","grid"],["masraf","Masraf Onayları","check"],["kutu","Kutu Maliyetleri","box"],["kasa","Kasa & Döviz","coins"],["stok","Stok","layers"],["cari","Müşteri & Cari","users"]];
+const TITLE={ozet:["Özet","Üretim maliyeti tek bakışta"],masraf:["Masraf Onayları","Personelden gelen masraf satırları — onaylayın / ödeyin"],kutu:["Kutu Maliyetleri","Marka bazında maliyet dökümü"],kasa:["Kasa & Döviz","Her kutu için ayrı kasa · döviz bozdurma"],stok:["Stok","Bitmiş kutu stoğu — marka bazında"],cari:["Müşteri Teslimat & Cari","Müşteri kayıtları, teslimatlar ve cari bakiye (USD)"]};
 function badgeOf(t){if(t==="masraf"){const n=cnt("bekliyor");return n?[n,"#F5A623","#111"]:null;}return null;}
 
 /* ============ RENDER ============ */
@@ -180,6 +180,7 @@ function viewFor(){
     case "kutu": return kutuView();
     case "kasa": return kasaView();
     case "stok": return stokView();
+    case "cari": return cariView();
   }return "";
 }
 
@@ -335,26 +336,65 @@ function kasaView(){
 }
 function kvrow(l,v,c,bold){return '<div class="row"'+(bold?' style="background:var(--card2);"':'')+'><div class="grow"'+(bold?' style="font-weight:800;"':'')+'>'+esc(l)+'</div><div style="text-align:right;font-weight:'+(bold?'800':'700')+';color:'+(c||'#fff')+';" class="mono">'+v+'</div></div>';}
 
-/* ============ STOK ============ */
+/* ============ STOK (bitmiş kutu) ============ */
+function stColOf(m){const C=["#C51515","#5B8DEF","#9B7BFF","#F5A623","#2ED573","#e36bb5","#4ecdc4"];const i=KUTULAR.indexOf(m);return C[(i<0?0:i)%C.length];}
 function stokView(){
-  const list=(STOK||[]).slice().sort((a,b)=>(a.malzeme||"").localeCompare(b.malzeme||"","tr"));
-  const dusuk=list.filter(s=>s.min>0&&s.miktar<=s.min).length;
-  const head='<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;">'
-   +'<div style="font-size:12px;color:var(--muted);">'+list.length+' malzeme'+(dusuk?' · <span style="color:#F5A623;font-weight:700;">'+dusuk+' düşük stok</span>':'')+'</div>'
-   +'<div style="display:flex;gap:8px;"><button class="btn b-w" data-act="stokHarAc">'+ic("plus",13,"#9db8f0")+' Stok Hareketi</button>'
-   +'<button class="btn b-on" data-act="stokYeniAc">'+ic("plus",13,"#5fd08a")+' Yeni Malzeme</button></div></div>';
-  if(!list.length) return head+'<div class="box"><div class="empty" style="padding:40px;">'+ic("layers",30,"#444")+'<div style="margin-top:10px;">Henüz malzeme yok. "Yeni Malzeme" ile ekleyin.</div></div></div>';
-  const hd='<div class="row hd"><div class="grow">MALZEME</div><div style="width:120px;text-align:right;">MEVCUT</div><div style="width:90px;text-align:right;">MIN</div><div style="width:110px;text-align:center;">DURUM</div></div>';
-  const rows=list.map(s=>{
-    const dus=s.min>0&&s.miktar<=s.min;
-    const durum=dus?'<span class="pill p-r">Düşük</span>':(s.miktar<=0?'<span class="pill p-o">Tükendi</span>':'<span class="pill p-g">Yeterli</span>');
-    return '<div class="row tap" data-act="stokDetay" data-m="'+esc(s.malzeme)+'"><div class="grow"><div style="font-weight:600;" class="nowrap">'+esc(s.malzeme)+'</div><div style="font-size:11px;color:var(--muted);">'+esc(s.birim||"")+'</div></div>'
-     +'<div style="width:120px;text-align:right;font-weight:800;'+(dus?'color:#FF6B5E;':'')+'" class="mono">'+(s.miktar||0).toLocaleString("tr-TR")+'</div>'
-     +'<div style="width:90px;text-align:right;color:var(--muted);" class="mono">'+(s.min?s.min.toLocaleString("tr-TR"):"—")+'</div>'
-     +'<div style="width:110px;text-align:center;">'+durum+'</div></div>';
-  }).join('');
-  return head+'<div class="box">'+hd+rows+'</div>'
-   +'<div style="font-size:11px;color:var(--muted);margin-top:12px;">'+ic("alert",12,"#F5A623")+' Mevcut miktar, tüm giriş/çıkış hareketlerinden hesaplanır. Bir satıra tıklayıp hareket geçmişini görebilirsin.</div>';
+  const list=(KUTUSTOK&&KUTUSTOK.length)?KUTUSTOK:KUTULAR.map(k=>({kutu:k,uretilen:0,teslim:0,stokta:0}));
+  const totStok=list.reduce((a,s)=>a+(s.stokta||0),0);
+  const totUret=list.reduce((a,s)=>a+(s.uretilen||0),0);
+  const biten=list.filter(s=>s.uretilen>0&&s.stokta<=0).length;
+  const top='<div class="kpis" style="grid-template-columns:repeat(3,1fr);">'
+   +kpi("TOPLAM STOKTA",(totStok).toLocaleString("tr-TR"),"adet kutu","layers","#2ED573")
+   +kpi("TOPLAM ÜRETİLEN",(totUret).toLocaleString("tr-TR"),"tüm zamanlar","box","#fff")
+   +kpi("STOĞU BİTEN",biten,"marka","alert","#FF6B5E")+'</div>';
+  const head='<div class="sec" style="margin-top:22px;"><div class="lft">'+ic("layers",13,"#8A8A8A")+' BİTMİŞ KUTU STOĞU</div><button class="btn b-on" data-act="stokGirisAc">'+ic("plus",13,"#5fd08a")+' Stok Girişi</button></div>';
+  const cards='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px;">'+list.map(s=>{
+    const u=s.uretilen||0,t=s.teslim||0,st=s.stokta||0,p=u?Math.round(t/u*100):0;
+    return '<div class="box" data-act="stokDetay" data-m="'+esc(s.kutu)+'" style="padding:16px;cursor:pointer;">'
+     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><span class="pill" style="background:'+stColOf(s.kutu)+';color:#fff;">'+esc(s.kutu)+'</span>'+(st<=0&&u>0?'<span class="pill p-r">bitti</span>':'')+'</div>'
+     +'<div class="mono" style="font-size:28px;font-weight:800;color:'+(st>0?'#fff':'#FF6B5E')+';">'+st.toLocaleString("tr-TR")+'</div><div style="font-size:11px;color:var(--muted);">adet stokta</div>'
+     +'<div style="height:7px;background:#2a2a2a;border-radius:6px;overflow:hidden;margin-top:12px;display:flex;"><i style="display:block;height:100%;width:'+p+'%;background:'+stColOf(s.kutu)+';"></i></div>'
+     +'<div style="display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:var(--muted);"><span>Teslim '+t.toLocaleString("tr-TR")+'</span><span>Üretilen '+u.toLocaleString("tr-TR")+'</span></div></div>';
+  }).join('')+'</div>';
+  return top+head+cards
+   +'<div style="font-size:11px;color:var(--muted);margin-top:14px;">'+ic("alert",12,"#F5A623")+' Stokta = stok girişleri − teslimatlar. Teslimatlar "Müşteri & Cari" sekmesinden girilir, buradan otomatik düşer. Karta tıklayıp hareket geçmişini görebilirsin.</div>';
+}
+
+/* ============ MÜŞTERİ & CARİ (USD) ============ */
+function cariTes(m){return TESLIMAT.filter(t=>t.musteri===m).reduce((a,t)=>a+(t.tutar||0),0);}
+function cariTah(m){return TAHSILAT.filter(t=>t.musteri===m).reduce((a,t)=>a+(t.tutar||0),0);}
+function cariBak(m){return cariTes(m)-cariTah(m);}
+function allMusteri(){const s=new Set();MUSTERILER.forEach(m=>s.add(m.ad));TESLIMAT.forEach(t=>s.add(t.musteri));TAHSILAT.forEach(t=>s.add(t.musteri));return [...s].filter(Boolean);}
+function cariView(){
+  const mus=allMusteri();
+  const totCari=mus.reduce((a,m)=>a+Math.max(0,cariBak(m)),0);
+  const totTah=TAHSILAT.reduce((a,t)=>a+(t.tutar||0),0);
+  const top='<div class="kpis" style="grid-template-columns:repeat(3,1fr);">'
+   +kpi("TOPLAM CARİ (ALACAK)",usd(totCari),"müşterilerden alacak","coins","#F5A623")
+   +kpi("TOPLAM TAHSİLAT",usd(totTah),"tahsil edilen","check","#2ED573")
+   +kpi("MÜŞTERİ",mus.length,"kayıtlı","users","#9B7BFF")+'</div>';
+  const head='<div class="sec" style="margin-top:22px;"><div class="lft">'+ic("users",13,"#8A8A8A")+' MÜŞTERİLER & CARİ</div>'
+   +'<div style="display:flex;gap:8px;"><button class="btn" data-act="musAc">'+ic("plus",13,"#bbb")+' Yeni Müşteri</button>'
+   +'<button class="btn b-w" data-act="teslimAc">'+ic("plus",13,"#9db8f0")+' Teslimat</button>'
+   +'<button class="btn b-on" data-act="tahsilAc">'+ic("plus",13,"#5fd08a")+' Tahsilat</button></div></div>';
+  const keys=mus.slice().sort((a,b)=>cariBak(b)-cariBak(a));
+  const chd='<div class="row hd"><div class="grow">MÜŞTERİ</div><div style="width:120px;text-align:right;">TESLİMAT</div><div style="width:120px;text-align:right;">TAHSİLAT</div><div style="width:120px;text-align:right;">KALAN CARİ</div></div>';
+  const cbox='<div class="box">'+(keys.length?chd+keys.map(m=>{const b=cariBak(m);
+    return '<div class="row tap" data-act="musDetay" data-m="'+esc(m)+'"><div class="grow nowrap" style="font-weight:700;">'+esc(m)+'</div>'
+     +'<div style="width:120px;text-align:right;" class="mono">'+usd(cariTes(m))+'</div>'
+     +'<div style="width:120px;text-align:right;color:#2ED573;" class="mono">'+usd(cariTah(m))+'</div>'
+     +'<div style="width:120px;text-align:right;font-weight:800;color:'+(b>0?'#F5A623':'#2ED573')+';" class="mono">'+usd(b)+'</div></div>';
+  }).join(''):'<div class="empty">Henüz müşteri yok.</div>')+'</div>';
+  const tlist=TESLIMAT.slice().reverse();
+  const thd='<div class="row hd"><div class="grow">MÜŞTERİ</div><div style="width:140px;">KUTU</div><div style="width:70px;text-align:right;">ADET</div><div style="width:80px;text-align:right;">B.FİYAT</div><div style="width:100px;text-align:right;">TUTAR</div><div style="width:100px;text-align:right;">TARİH</div></div>';
+  const tbox='<div class="sec"><div class="lft">'+ic("box",13,"#8A8A8A")+' SON TESLİMATLAR</div></div><div class="box">'+(tlist.length?thd+tlist.map(t=>'<div class="row"><div class="grow nowrap" style="font-weight:600;">'+esc(t.musteri)+'</div>'
+    +'<div style="width:140px;"><span class="pill" style="background:'+stColOf(t.kutu)+';color:#fff;">'+esc(t.kutu)+'</span></div>'
+    +'<div style="width:70px;text-align:right;font-weight:700;" class="mono">'+(t.adet||0).toLocaleString("tr-TR")+'</div>'
+    +'<div style="width:80px;text-align:right;color:var(--muted);" class="mono">'+usd(t.fiyat)+'</div>'
+    +'<div style="width:100px;text-align:right;font-weight:700;" class="mono">'+usd(t.tutar)+'</div>'
+    +'<div style="width:100px;text-align:right;color:var(--muted);" class="mono">'+esc(t.tarih)+'</div></div>').join(''):'<div class="empty">Teslimat yok.</div>')+'</div>';
+  return top+head+cbox+tbox
+   +'<div style="font-size:11px;color:var(--muted);margin-top:14px;">'+ic("alert",12,"#F5A623")+' Teslimat girilince stoktan düşer ve tutar müşteri carisine (USD) borç yazılır. Tahsilat cariyi azaltır. Cari = Σ teslimat − Σ tahsilat. Kasadan bağımsızdır.</div>';
 }
 
 /* ============ MODALLER ============ */
@@ -377,36 +417,79 @@ function sheetOvl(){
      +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="dg_ack" class="field" placeholder="Örn. müşteri ödemesi">'
      +'<button class="btnred" style="margin-top:16px;" data-act="dolarKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Girişi Kaydet</button></div></div>';
   }
-  if(S.sheet==="stokYeni"){
-    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Yeni Malzeme</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
-     +'<label class="lbl">Malzeme Adı</label><input id="sy_ad" class="field" placeholder="Örn. Mukavva Yerli Gri 2 mm">'
-     +'<label class="lbl">Birim</label><input id="sy_birim" class="field" placeholder="tabaka / metre / adet / kg">'
-     +'<div class="two"><div><label class="lbl">Min. Seviye</label><input id="sy_min" class="field" type="number" inputmode="decimal" placeholder="0"></div>'
-     +'<div><label class="lbl">Başlangıç Stoğu</label><input id="sy_bas" class="field" type="number" inputmode="decimal" placeholder="0"></div></div>'
-     +'<button class="btnred" style="margin-top:16px;" data-act="stokYeniKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Malzemeyi Ekle</button></div></div>';
+  if(S.sheet==="stokGiris"){
+    const opts=KUTULAR.map(k=>'<option>'+esc(k)+'</option>').join('');
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Stok Girişi (Üretim)</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+     +'<label class="lbl">Kutu (Marka)</label><select id="sg_kutu" class="field">'+opts+'</select>'
+     +'<label class="lbl">Adet</label><input id="sg_adet" class="field" type="number" inputmode="numeric" placeholder="0">'
+     +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="sg_ack" class="field" placeholder="Örn. Haziran üretimi">'
+     +'<label class="lbl">Tarih</label><input id="sg_tar" class="field" value="'+bugun()+'">'
+     +'<button class="btnred" style="margin-top:16px;" data-act="stokGirisKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Stok Girişini Kaydet</button></div></div>';
   }
-  if(S.sheet==="stokHar"){
-    const m=S.sheetData||{};
-    const opts=(STOK||[]).map(s=>'<option value="'+esc(s.malzeme)+'"'+(m.malzeme===s.malzeme?' selected':'')+'>'+esc(s.malzeme)+' ('+(s.miktar||0).toLocaleString("tr-TR")+' '+esc(s.birim||"")+')</option>').join('');
-    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Stok Hareketi</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
-     +'<label class="lbl">Malzeme</label><select id="sh_malz" class="field">'+opts+'</select>'
-     +'<label class="lbl">İşlem</label><div class="seg" style="margin-bottom:12px;"><div class="opt2'+(m.tip!=="Çıkış"?' on':'')+'" data-act="shTip" data-v="Giriş" id="sh_giris">'+ic("plus",13)+' Giriş</div><div class="opt2'+(m.tip==="Çıkış"?' on':'')+'" data-act="shTip" data-v="Çıkış" id="sh_cikis">'+ic("minus",13)+' Çıkış</div></div>'
-     +'<label class="lbl">Miktar</label><input id="sh_mik" class="field" type="number" inputmode="decimal" placeholder="0">'
-     +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="sh_ack" class="field" placeholder="Örn. üretim için kullanıldı">'
-     +'<button class="btnred" style="margin-top:16px;" data-act="stokHarKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Hareketi Kaydet</button></div></div>';
+  if(S.sheet==="teslim"){
+    const opts=KUTULAR.map(k=>'<option>'+esc(k)+'</option>').join('');
+    const muso=allMusteri().map(m=>'<option value="'+esc(m)+'">').join('');
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Teslimat Ekle</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+     +'<label class="lbl">Müşteri</label><input id="ts_mus" class="field" placeholder="Müşteri adı" list="muslist"'+((S.sheetData&&S.sheetData.musteri)?' value="'+esc(S.sheetData.musteri)+'"':'')+'><datalist id="muslist">'+muso+'</datalist>'
+     +'<label class="lbl">Kutu (Marka)</label><select id="ts_kutu" class="field" onchange="tsStok()">'+opts+'</select>'
+     +'<div id="ts_stok" style="font-size:11px;color:var(--muted);margin-top:5px;"></div>'
+     +'<div class="two"><div><label class="lbl">Adet</label><input id="ts_adet" class="field" type="number" inputmode="numeric" placeholder="0" oninput="tsTutar()"></div>'
+     +'<div><label class="lbl">Birim Fiyat (USD)</label><input id="ts_fiyat" class="field" type="number" inputmode="decimal" placeholder="0" oninput="tsTutar()"></div></div>'
+     +'<div class="kpi" style="margin-top:10px;"><div class="t">TOPLAM TUTAR (CARİYE YAZILACAK)</div><div class="v" id="ts_tutar" style="color:#F5A623;">$0</div></div>'
+     +'<label class="lbl">Tarih</label><input id="ts_tar" class="field" value="'+bugun()+'">'
+     +'<button class="btnred" style="margin-top:16px;" data-act="teslimKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Teslimatı Kaydet</button></div></div>';
+  }
+  if(S.sheet==="tahsil"){
+    const muso=allMusteri().map(m=>'<option'+((S.sheetData&&S.sheetData.musteri===m)?' selected':'')+'>'+esc(m)+'</option>').join('');
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Tahsilat Ekle</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+     +'<label class="lbl">Müşteri</label><select id="th_mus" class="field">'+muso+'</select>'
+     +'<label class="lbl">Tutar (USD)</label><input id="th_tutar" class="field" type="number" inputmode="decimal" placeholder="0">'
+     +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="th_ack" class="field" placeholder="Örn. havale / nakit">'
+     +'<label class="lbl">Tarih</label><input id="th_tar" class="field" value="'+bugun()+'">'
+     +'<button class="btnred" style="margin-top:16px;" data-act="tahsilKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Tahsilatı Kaydet</button></div></div>';
   }
   if(S.sheet==="stokDetay"){
-    const s=(STOK||[]).filter(x=>x.malzeme===(S.sheetData||{}).malzeme)[0]||{malzeme:"",hareketler:[]};
-    const h=(s.hareketler||[]).slice().reverse();
-    const rows=h.length?h.map(x=>'<div class="row"><div class="grow"><div class="mono">'+esc(x.tarih||"")+'</div><div style="font-size:11px;color:var(--muted);">'+esc(x.aciklama||"")+'</div></div><div style="text-align:right;font-weight:700;color:'+((x.tip==="Çıkış"||x.tip==="Cikis")?'#FF6B5E':'#2ED573')+';" class="mono">'+((x.tip==="Çıkış"||x.tip==="Cikis")?'−':'+')+(x.miktar||0).toLocaleString("tr-TR")+'</div></div>').join(''):'<div class="empty">Hareket yok.</div>';
-    return '<div class="ovl"><div class="modal" style="max-width:480px;"><div class="mh"><div class="t">'+esc(s.malzeme)+'</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
-     +'<div class="kpi" style="margin-bottom:12px;"><div class="t">MEVCUT STOK</div><div class="v">'+(s.miktar||0).toLocaleString("tr-TR")+' '+esc(s.birim||"")+'</div></div>'
-     +'<div class="sec" style="margin-top:4px;">HAREKET GEÇMİŞİ</div><div class="box">'+rows+'</div>'
-     +'<button class="btnred" style="margin-top:14px;" data-act="stokHarAcM" data-m="'+esc(s.malzeme)+'">'+ic("plus",16,"#fff")+' Bu Malzemeye Hareket Ekle</button></div></div>';
+    const k=(S.sheetData||{}).kutu||"";
+    const row=(KUTUSTOK||[]).filter(x=>x.kutu===k)[0]||{uretilen:0,teslim:0,stokta:0};
+    const har=(STOKGIRIS||[]).filter(g=>g.kutu===k).map(g=>({tarih:g.tarih,txt:"Stok girişi"+(g.aciklama?" · "+g.aciklama:""),adet:g.adet,tip:"g"}))
+      .concat((TESLIMAT||[]).filter(t=>t.kutu===k).map(t=>({tarih:t.tarih,txt:"Teslimat · "+t.musteri,adet:t.adet,tip:"c"})));
+    const rows=har.length?har.map(h=>'<div class="row"><div class="grow"><div style="font-weight:600;">'+esc(h.txt)+'</div><div style="font-size:11px;color:var(--muted);">'+esc(h.tarih)+'</div></div><div style="text-align:right;font-weight:800;color:'+(h.tip==="c"?'#FF6B5E':'#2ED573')+';" class="mono">'+(h.tip==="c"?'−':'+')+(h.adet||0).toLocaleString("tr-TR")+'</div></div>').join(''):'<div class="empty">Hareket yok.</div>';
+    return '<div class="ovl"><div class="modal" style="max-width:500px;"><div class="mh"><div class="t">'+esc(k)+' · Stok</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+     +'<div class="kpis" style="grid-template-columns:repeat(3,1fr);gap:9px;">'
+     +'<div class="kpi" style="padding:11px;"><div class="t">ÜRETİLEN</div><div class="v" style="font-size:17px;">'+(row.uretilen||0).toLocaleString("tr-TR")+'</div></div>'
+     +'<div class="kpi" style="padding:11px;"><div class="t">TESLİM</div><div class="v" style="font-size:17px;color:#FF6B5E;">'+(row.teslim||0).toLocaleString("tr-TR")+'</div></div>'
+     +'<div class="kpi" style="padding:11px;"><div class="t">STOKTA</div><div class="v" style="font-size:17px;color:#2ED573;">'+(row.stokta||0).toLocaleString("tr-TR")+'</div></div></div>'
+     +'<div class="sec" style="margin:14px 0 8px;">HAREKET GEÇMİŞİ</div><div class="box" style="max-height:280px;overflow:auto;">'+rows+'</div>'
+     +'<button class="btnred" style="margin-top:14px;" data-act="stokGirisAc">'+ic("plus",16,"#fff")+' Stok Girişi Ekle</button></div></div>';
+  }
+  if(S.sheet==="musYeni"){
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Yeni Müşteri</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+     +'<label class="lbl">Müşteri Adı / Firma</label><input id="my_ad" class="field" placeholder="Örn. Saat Dünyası A.Ş.">'
+     +'<label class="lbl">Telefon (isteğe bağlı)</label><input id="my_tel" class="field" placeholder="05xx...">'
+     +'<label class="lbl">Not (isteğe bağlı)</label><input id="my_not" class="field" placeholder="">'
+     +'<button class="btnred" style="margin-top:16px;" data-act="musKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Müşteriyi Kaydet</button></div></div>';
+  }
+  if(S.sheet==="musDetay"){
+    const m=(S.sheetData||{}).musteri||"";
+    const har=TESLIMAT.filter(t=>t.musteri===m).map(t=>({tarih:t.tarih,txt:t.kutu+" · "+(t.adet||0).toLocaleString("tr-TR")+" adet × "+usd(t.fiyat),tutar:t.tutar||0}))
+      .concat(TAHSILAT.filter(t=>t.musteri===m).map(t=>({tarih:t.tarih,txt:"Tahsilat"+(t.aciklama?" · "+t.aciklama:""),tutar:-(t.tutar||0)})));
+    const info=(MUSTERILER.filter(x=>x.ad===m)[0]||{});
+    const rows=har.length?har.map(h=>'<div class="row"><div class="grow"><div style="font-weight:600;">'+esc(h.txt)+'</div><div style="font-size:11px;color:var(--muted);">'+esc(h.tarih)+'</div></div><div style="text-align:right;font-weight:800;color:'+(h.tutar<0?'#2ED573':'#fff')+';" class="mono">'+(h.tutar<0?'−':'+')+usd(Math.abs(h.tutar)).slice(1)+'</div></div>').join(''):'<div class="empty">Hareket yok.</div>';
+    return '<div class="ovl"><div class="modal" style="max-width:520px;"><div class="mh"><div class="t">'+esc(m)+'</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+     +(info.tel?'<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">'+esc(info.tel)+(info.not?' · '+esc(info.not):'')+'</div>':'')
+     +'<div class="kpis" style="grid-template-columns:repeat(3,1fr);gap:9px;">'
+     +'<div class="kpi" style="padding:11px;"><div class="t">TESLİMAT</div><div class="v" style="font-size:17px;">'+usd(cariTes(m))+'</div></div>'
+     +'<div class="kpi" style="padding:11px;"><div class="t">TAHSİLAT</div><div class="v" style="font-size:17px;color:#2ED573;">'+usd(cariTah(m))+'</div></div>'
+     +'<div class="kpi" style="padding:11px;"><div class="t">KALAN CARİ</div><div class="v" style="font-size:17px;color:#F5A623;">'+usd(cariBak(m))+'</div></div></div>'
+     +'<div class="sec" style="margin:14px 0 8px;">HAREKET DÖKÜMÜ</div><div class="box" style="max-height:280px;overflow:auto;">'+rows+'</div>'
+     +'<div class="two" style="margin-top:14px;"><button class="btn b-w" style="flex:1;justify-content:center;" data-act="teslimAcM" data-m="'+esc(m)+'">'+ic("plus",14,"#9db8f0")+' Teslimat</button>'
+     +'<button class="btn b-on" style="flex:1;justify-content:center;" data-act="tahsilAcM" data-m="'+esc(m)+'">'+ic("plus",14,"#5fd08a")+' Tahsilat</button></div></div></div>';
   }
   return "";
 }
 function bzHesap(){const u=parseFloat(($("bz_usd")||{}).value||"0")||0;const k=parseFloat(($("bz_kur")||{}).value||"0")||0;const o=$("bz_elde");if(o)o.textContent="₺"+Math.round(u*k).toLocaleString("tr-TR");}
+function tsStok(){const k=($("ts_kutu")||{}).value;const row=(KUTUSTOK||[]).filter(x=>x.kutu===k)[0];const o=$("ts_stok");if(o)o.textContent="Stokta: "+((row?row.stokta:0)||0).toLocaleString("tr-TR")+" adet";}
+function tsTutar(){const a=parseFloat(($("ts_adet")||{}).value||"0")||0;const f=parseFloat(($("ts_fiyat")||{}).value||"0")||0;const o=$("ts_tutar");if(o)o.textContent=usd(a*f);}
 
 /* ============ EYLEMLER ============ */
 async function doLogin(){
@@ -445,44 +528,64 @@ document.addEventListener("click",async e=>{
   if(a==="onay"){setStatus(el.getAttribute("data-id"),el.getAttribute("data-d"));return;}
   if(a==="bozdurAc"){S.sheet="bozdur";render();return;}
   if(a==="dolarAc"){S.sheet="dolar";render();return;}
-  if(a==="stokYeniAc"){S.sheet="stokYeni";render();return;}
-  if(a==="stokHarAc"){S.sheetData=null;S.sheet="stokHar";render();return;}
-  if(a==="stokHarAcM"){S.sheetData={malzeme:el.getAttribute("data-m")};S.sheet="stokHar";render();return;}
-  if(a==="stokDetay"){S.sheetData={malzeme:el.getAttribute("data-m")};S.sheet="stokDetay";render();return;}
-  if(a==="shTip"){const v=el.getAttribute("data-v");const g=$("sh_giris"),c=$("sh_cikis");if(g)g.classList.toggle("on",v!=="Çıkış");if(c)c.classList.toggle("on",v==="Çıkış");S.sheetData=Object.assign({},S.sheetData,{tip:v});return;}
+  if(a==="stokGirisAc"){S.sheet="stokGiris";render();return;}
+  if(a==="stokDetay"){S.sheetData={kutu:el.getAttribute("data-m")};S.sheet="stokDetay";render();return;}
+  if(a==="musAc"){S.sheet="musYeni";render();return;}
+  if(a==="teslimAc"){S.sheetData=null;S.sheet="teslim";render();return;}
+  if(a==="teslimAcM"){S.sheetData={musteri:el.getAttribute("data-m")};S.sheet="teslim";render();return;}
+  if(a==="tahsilAc"){S.sheetData=null;S.sheet="tahsil";render();return;}
+  if(a==="tahsilAcM"){S.sheetData={musteri:el.getAttribute("data-m")};S.sheet="tahsil";render();return;}
+  if(a==="musDetay"){S.sheetData={musteri:el.getAttribute("data-m")};S.sheet="musDetay";render();return;}
   if(a==="sheetclose"){S.sheet=null;S.sheetData=null;render();return;}
   if(a==="bozdurKaydet"){
-    const usd=parseFloat(($("bz_usd").value||"").replace(",","."))||0, kur=parseFloat(($("bz_kur").value||"").replace(",","."))||0, tar=$("bz_tar").value;
-    if(!(usd>0)){toast("USD tutarı girin");return;} if(!(kur>0)){toast("Kuru girin");return;}
+    const usdv=parseFloat(($("bz_usd").value||"").replace(",","."))||0, kur=parseFloat(($("bz_kur").value||"").replace(",","."))||0, tar=$("bz_tar").value;
+    if(!(usdv>0)){toast("USD tutarı girin");return;} if(!(kur>0)){toast("Kuru girin");return;}
     if(S.busy)return;S.busy=true;
-    try{const j=await api("bozdur",{data:{tarih:tar,usd:usd,kur:kur,kutu:S.kasaKutu}});
+    try{const j=await api("bozdur",{data:{tarih:tar,usd:usdv,kur:kur,kutu:S.kasaKutu}});
       if(j.ok===false){toast(j.error||"Kaydedilemedi");S.busy=false;return;}
       toast("Bozduruldu · "+S.kasaKutu+" kasasına eklendi");S.sheet=null;const r=await api("data");if(r&&r.ok)applyData(r);
     }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
   if(a==="dolarKaydet"){
-    const usd=parseFloat(($("dg_usd").value||"").replace(",","."))||0, ack=$("dg_ack").value, tar=$("dg_tar").value;
-    if(!(usd>0)){toast("USD tutarı girin");return;}
+    const usdv=parseFloat(($("dg_usd").value||"").replace(",","."))||0, ack=$("dg_ack").value, tar=$("dg_tar").value;
+    if(!(usdv>0)){toast("USD tutarı girin");return;}
     if(S.busy)return;S.busy=true;
-    try{const j=await api("dolarGiris",{data:{tarih:tar,usd:usd,aciklama:ack,kutu:S.kasaKutu}});
+    try{const j=await api("dolarGiris",{data:{tarih:tar,usd:usdv,aciklama:ack,kutu:S.kasaKutu}});
       if(j.ok===false){toast(j.error||"Kaydedilemedi");S.busy=false;return;}
       toast("Dolar girişi · "+S.kasaKutu);S.sheet=null;const r=await api("data");if(r&&r.ok)applyData(r);
     }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
-  if(a==="stokYeniKaydet"){
-    const ad=($("sy_ad").value||"").trim(), birim=($("sy_birim").value||"").trim(), min=parseFloat(($("sy_min").value||"").replace(",","."))||0, bas=parseFloat(($("sy_bas").value||"").replace(",","."))||0;
-    if(!ad){toast("Malzeme adı girin");return;}
+  if(a==="stokGirisKaydet"){
+    const kutu=$("sg_kutu").value, adet=parseInt(($("sg_adet").value||"").replace(/\D/g,""))||0, ack=$("sg_ack").value, tar=$("sg_tar").value;
+    if(!(adet>0)){toast("Adet girin");return;}
     if(S.busy)return;S.busy=true;
-    try{const j=await api("stokYeni",{data:{malzeme:ad,birim:birim,min:min,baslangic:bas}});
-      if(j.ok===false){toast(j.error||"Eklenemedi");S.busy=false;return;}
-      toast("Malzeme eklendi");S.sheet=null;const r=await api("data");if(r&&r.ok)applyData(r);
-    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
-  if(a==="stokHarKaydet"){
-    const malz=$("sh_malz").value, mik=parseFloat(($("sh_mik").value||"").replace(",","."))||0, ack=$("sh_ack").value;
-    const tip=(S.sheetData&&S.sheetData.tip)||"Giriş";
-    if(!malz){toast("Malzeme seçin");return;} if(!(mik>0)){toast("Miktar girin");return;}
-    if(S.busy)return;S.busy=true;
-    try{const j=await api("stokHareket",{data:{malzeme:malz,tip:tip,miktar:mik,aciklama:ack}});
+    try{const j=await api("stokGiris",{data:{kutu:kutu,adet:adet,aciklama:ack,tarih:tar}});
       if(j.ok===false){toast(j.error||"Kaydedilemedi");S.busy=false;return;}
-      toast(tip+" kaydedildi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
+      toast("Stok girişi kaydedildi");S.sheet=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="teslimKaydet"){
+    const mus=($("ts_mus").value||"").trim(), kutu=$("ts_kutu").value, adet=parseInt(($("ts_adet").value||"").replace(/\D/g,""))||0, fiyat=parseFloat(($("ts_fiyat").value||"").replace(",","."))||0, tar=$("ts_tar").value;
+    if(!mus){toast("Müşteri girin");return;} if(!(adet>0)){toast("Adet girin");return;}
+    const row=(KUTUSTOK||[]).filter(x=>x.kutu===kutu)[0];const stk=row?row.stokta:0;
+    if(adet>stk && !confirm(kutu+" stoğunda "+stk.toLocaleString("tr-TR")+" adet var. Yine de kaydedilsin mi?"))return;
+    if(S.busy)return;S.busy=true;
+    try{const j=await api("teslimat",{data:{musteri:mus,kutu:kutu,adet:adet,fiyat:fiyat,tarih:tar}});
+      if(j.ok===false){toast(j.error||"Kaydedilemedi");S.busy=false;return;}
+      toast("Teslimat kaydedildi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="tahsilKaydet"){
+    const mus=$("th_mus").value, tutar=parseFloat(($("th_tutar").value||"").replace(",","."))||0, ack=$("th_ack").value, tar=$("th_tar").value;
+    if(!mus){toast("Müşteri seçin");return;} if(!(tutar>0)){toast("Tutar girin");return;}
+    if(S.busy)return;S.busy=true;
+    try{const j=await api("tahsilat",{data:{musteri:mus,tutar:tutar,aciklama:ack,tarih:tar}});
+      if(j.ok===false){toast(j.error||"Kaydedilemedi");S.busy=false;return;}
+      toast("Tahsilat kaydedildi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="musKaydet"){
+    const ad=($("my_ad").value||"").trim(), tel=$("my_tel").value, not=$("my_not").value;
+    if(!ad){toast("Müşteri adı girin");return;}
+    if(S.busy)return;S.busy=true;
+    try{const j=await api("musteriEkle",{data:{ad:ad,tel:tel,not:not}});
+      if(j.ok===false){toast(j.error||"Eklenemedi");S.busy=false;return;}
+      toast("Müşteri eklendi");S.sheet=null;const r=await api("data");if(r&&r.ok)applyData(r);
     }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
 });
 document.addEventListener("change",e=>{
