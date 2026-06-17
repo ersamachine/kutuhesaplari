@@ -244,7 +244,7 @@ function brd(h){const c=hx(h);return'rgba('+c[0]+','+c[1]+','+c[2]+',.3)';}
 /* ============ YENİ MASRAF FORMU (sheet) ============ */
 function formSheet(){
  const hav=S.method==="havale";
- return '<div class="ovl" data-act="close"><div class="sheet" onclick="event.stopPropagation()">'
+ return '<div class="ovl"><div class="sheet">'
  +'<div class="sheethead"><div class="sheettitle">Yeni Masraf Girişi</div><div class="xbtn" data-act="close">'+ic("x",16,"#ccc")+'</div></div>'
  +'<label class="lbl">Hangi kutu için?</label>'
  +'<div class="selbar'+(S.boxOpen?' open':'')+'" data-act="boxbar">'
@@ -288,6 +288,7 @@ function toast(t){$("toasthost").innerHTML='<div class="toast">'+esc(t)+'</div>'
 
 /* ============ OLAYLAR ============ */
 $("app").addEventListener("click",async function(e){
+ if(e.target.classList&&e.target.classList.contains("ovl")){S.sheet=null;render();return;}
  const el=e.target.closest("[data-act]");if(!el)return;
  const a=el.getAttribute("data-act"),v=el.getAttribute("data-v");
  if(a==="login"){
