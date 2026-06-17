@@ -122,6 +122,7 @@ function applyData(j){
     const tlT=pb==="TL"?t:0, usdT=pb==="USD"?t:(RATE?t/RATE:0);
     const ad=URETIM[m.kutu]||0;
     return {id:m.id,kutu:m.kutu,aciklama:m.alici||m.aciklama,olcu:m.aciklama&&m.alici?m.aciklama:"",giren:m.giren,
+            alici:m.alici||"",notu:m.aciklama||"",pb:pb,tutarRaw:t,
             tlT,usdT,kbtl:ad?tlT/ad:0,kbusd:ad?usdT/ad:0,durum:DKEY[m.durum]||"bekliyor",tarih:m.tarih,
             odemeSekli:m.odemeSekli,iban:m.iban};
   });
@@ -270,7 +271,9 @@ function masrafRow(e){
   else if(e.durum==="odendi"){act='<span style="font-size:11px;color:#2ED573;font-weight:700;display:inline-flex;align-items:center;gap:4px;">'+ic('check',13,'#2ED573')+' Ödendi</span>';}
   else {act='<button class="btn b-w" data-act="onay" data-id="'+e.id+'" data-d="bekliyor">'+ic('undo',13,'#9db8f0')+' Geri Al</button>';}
   const detay=[e.olcu,(e.tabaka?e.tabaka.toLocaleString("tr-TR")+" tabaka":""),(e.adet?e.adet.toLocaleString("tr-TR")+" adet":"")].filter(Boolean).join(" · ");
-  return '<div class="row"><div class="grow"><div style="font-weight:700;" class="nowrap">'+esc(e.aciklama)+'</div><div style="font-size:11px;color:var(--muted);" class="nowrap">'+(detay||"&nbsp;")+'</div></div>'
+  const havale=String(e.odemeSekli||"").toLowerCase()==="havale";
+  const odeme=havale?'<span class="pill p-b" style="font-size:9px;">Havale'+(e.iban?' · IBAN':'')+'</span>':'<span class="pill p-o" style="font-size:9px;">Elden</span>';
+  return '<div class="row"><div class="grow tap" data-act="masrafDetay" data-id="'+esc(e.id)+'" style="cursor:pointer;"><div style="font-weight:700;display:flex;align-items:center;gap:7px;" class="nowrap">'+esc(e.aciklama)+' '+odeme+'</div><div style="font-size:11px;color:var(--muted);" class="nowrap">'+(detay||(e.giren?"Giren: "+esc(e.giren):"&nbsp;"))+' · detay ›</div></div>'
    +'<div style="width:90px;"><span class="pill" style="background:var(--red);color:#fff;">'+esc(e.kutu)+'</span></div>'
    +'<div style="width:110px;text-align:right;font-weight:700;" class="mono">'+(e.tlT?tl(e.tlT):"—")+'</div>'
    +'<div style="width:95px;text-align:right;color:var(--muted);" class="mono">'+usd(e.usdT)+'</div>'
@@ -561,6 +564,28 @@ function sheetOvl(){
      +'<div class="sec" style="margin:4px 0 8px;">HAREKET GEÇMİŞİ</div><div class="box" style="max-height:280px;overflow:auto;">'+rows+'</div>'
      +'<button class="btnred" style="margin-top:14px;" data-act="malzGirisForM" data-m="'+esc(ad)+'" data-b="'+esc(x.birim||"")+'">'+ic("plus",16,"#fff")+' Bu Malzemeye Hareket</button></div></div>';
   }
+  if(S.sheet==="masrafDetay"){
+    const e=DATA.filter(x=>x.id===(S.sheetData||{}).id)[0];
+    if(!e) return "";
+    const havale=String(e.odemeSekli||"").toLowerCase()==="havale";
+    const tutar=e.pb==="USD"?usd(e.tutarRaw):tl(e.tutarRaw);
+    let act='';
+    if(e.durum==="bekliyor"){act='<div class="two" style="margin-top:16px;"><button class="btnred" style="margin-top:0;flex:1;" data-act="onay" data-id="'+esc(e.id)+'" data-d="onaylandi">'+ic("check",15,"#fff")+' Onayla</button><button class="btn b-no" style="flex:1;justify-content:center;" data-act="onay" data-id="'+esc(e.id)+'" data-d="reddedildi">Reddet</button></div>';}
+    else if(e.durum==="onaylandi"){act='<div class="two" style="margin-top:16px;"><button class="btnred" style="margin-top:0;flex:1;" data-act="onay" data-id="'+esc(e.id)+'" data-d="odendi">'+ic("send",15,"#fff")+' Ödendi İşaretle</button><button class="btn b-no" style="flex:1;justify-content:center;" data-act="onay" data-id="'+esc(e.id)+'" data-d="reddedildi">İptal</button></div>';}
+    const ibanBlok=havale?(e.iban?
+        '<label class="lbl">IBAN / Hesap No</label><div style="display:flex;gap:8px;align-items:stretch;"><div class="field mono" style="flex:1;letter-spacing:.5px;word-break:break-all;">'+esc(e.iban)+'</div><button class="btn" style="white-space:nowrap;" data-act="ibanKopyala" data-v="'+esc(e.iban)+'">'+ic("check",13,"#bbb")+' Kopyala</button></div>'
+        :'<div class="kpi" style="margin-top:10px;border-color:#3a2a1a;"><div class="t" style="color:#F5A623;">⚠ IBAN GİRİLMEMİŞ</div><div class="x">Havale seçilmiş ama IBAN boş.</div></div>')
+      :'';
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Masraf Detayı</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span class="pill" style="background:var(--red);color:#fff;">'+esc(e.kutu)+'</span>'+pill(e.durum)+'<span class="pill '+(havale?'p-b':'p-o')+'" style="font-size:10px;">'+(havale?"Havale":"Elden")+'</span></div>'
+     +'<div class="kpi" style="margin-top:10px;"><div class="t">TUTAR</div><div class="v" style="color:'+(e.pb==="USD"?'#F5A623':'#fff')+';">'+tutar+'</div></div>'
+     +'<label class="lbl">Alıcı</label><div class="field" style="background:#141414;">'+esc(e.alici||"—")+'</div>'
+     +ibanBlok
+     +'<label class="lbl">Açıklama</label><div class="field" style="background:#141414;min-height:44px;">'+esc(e.notu||"—")+'</div>'
+     +'<div class="two"><div><label class="lbl">Giren</label><div class="field" style="background:#141414;">'+esc(e.giren||"—")+'</div></div><div><label class="lbl">Tarih</label><div class="field mono" style="background:#141414;">'+esc(e.tarih||"—")+'</div></div></div>'
+     +act
+     +'</div></div>';
+  }
   return "";
 }
 function bzHesap(){const u=parseFloat(($("bz_usd")||{}).value||"0")||0;const k=parseFloat(($("bz_kur")||{}).value||"0")||0;const o=$("bz_elde");if(o)o.textContent="₺"+Math.round(u*k).toLocaleString("tr-TR");}
@@ -586,6 +611,7 @@ async function setStatus(id,d){
     if(j.ok===false){toast(j.error||"İşlem başarısız");S.busy=false;return;}
     toast(DLAB[d]+(d==="odendi"?" olarak işaretlendi":""));
     const r=await api("data");if(r&&r.ok)applyData(r);
+    if(S.sheet==="masrafDetay"){S.sheet=null;S.sheetData=null;}
   }catch(e){toast("Bağlantı hatası");}
   S.busy=false;render();
 }
@@ -598,6 +624,8 @@ document.addEventListener("click",async e=>{
   if(a==="login"){doLogin();return;}
   if(a==="logout"){try{localStorage.removeItem("km_yonetici");}catch(_){}S.authed=false;S.kod="";S.sifre="";renderLogin();return;}
   if(a==="reload"){reloadData();return;}
+  if(a==="masrafDetay"){S.sheetData={id:el.getAttribute("data-id")};S.sheet="masrafDetay";render();return;}
+  if(a==="ibanKopyala"){const v=el.getAttribute("data-v")||"";try{await navigator.clipboard.writeText(v);toast("IBAN kopyalandı");}catch(_){toast("Kopyalanamadı: "+v);}return;}
   if(a==="selkutu"){S.selKutu=el.getAttribute("data-k");render();return;}
   if(a==="kutuTog"){const k=el.getAttribute("data-k");S.openKutu=S.openKutu===k?null:k;render();return;}
   if(a==="kasaKutu"){S.kasaKutu=el.getAttribute("data-k");render();return;}
