@@ -78,6 +78,15 @@ select.field{appearance:none;-webkit-appearance:none;}
 .fabbtn:active{transform:scale(.9);}
 .ovl{position:absolute;inset:0;background:rgba(15,15,15,.6);z-index:60;display:flex;align-items:flex-end;animation:fd .2s;}
 .sheet{width:100%;background:#202020;border-radius:24px 24px 0 0;padding:18px 18px 26px;animation:sh .28s cubic-bezier(.2,.8,.2,1);max-height:92%;overflow-y:auto;}
+.sheet.noanim{animation:none;}
+.ovl2{z-index:72;}
+.picker{max-height:72%;}
+.pickitem{display:flex;align-items:center;gap:11px;padding:14px 6px;font-size:15px;font-weight:600;color:#e9e9e9;cursor:pointer;border-top:1px solid #2a2a2a;}
+.pickitem:first-of-type{border-top:none;}
+.pickitem.on{color:#fff;}
+.pickitem .pk{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#2a2a2a;flex-shrink:0;}
+.pickitem.on .pk{background:var(--red);}
+.pickitem:active{opacity:.7;}
 .sheet::-webkit-scrollbar{width:0;}
 .sheethead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
 .sheettitle{font-weight:700;font-size:17px;color:#fff;}
@@ -127,7 +136,7 @@ const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;
 /* ---- durum / API ---- */
 let RATE=45.92;
 let KUTULAR=["Rolex","Michael Kors","Emporio Armani","Versace","Burberry","Tissot","Maurice Lacroix"];
-const S={authed:false,me:null,kod:"",sifre:"",data:null,loading:false,tab:"home",sheet:null,method:"havale",cur:"TL",box:"",boxOpen:false,f:"all",loginErr:""};
+const S={authed:false,me:null,kod:"",sifre:"",data:null,loading:false,tab:"home",sheet:null,method:"havale",cur:"TL",box:"",picker:null,form:{},f:"all",loginErr:""};
 try{const a=JSON.parse(localStorage.getItem("km_personel")||"null");if(a&&a.kod){S.kod=a.kod;S.sifre=a.sifre;S.authed=true;}}catch(e){}
 
 async function api(action,extra){
@@ -242,30 +251,37 @@ function grad(h){const c=hx(h);return'linear-gradient(135deg,rgba('+c[0]+','+c[1
 function brd(h){const c=hx(h);return'rgba('+c[0]+','+c[1]+','+c[2]+',.3)';}
 
 /* ============ YENİ MASRAF FORMU (sheet) ============ */
-function formSheet(){
- const hav=S.method==="havale";
- return '<div class="ovl"><div class="sheet">'
+function formSheet(noanim){
+ const hav=S.method==="havale", F=S.form||{};
+ return '<div class="ovl"><div class="sheet'+(noanim?' noanim':'')+'">'
  +'<div class="sheethead"><div class="sheettitle">Yeni Masraf Girişi</div><div class="xbtn" data-act="close">'+ic("x",16,"#ccc")+'</div></div>'
  +'<label class="lbl">Hangi kutu için?</label>'
- +'<div class="selbar'+(S.boxOpen?' open':'')+'" data-act="boxbar">'
+ +'<div class="selbar" data-act="boxpick">'
    +(S.box?'<span class="selval">'+ic("box",15,"#C51515")+' '+esc(S.box)+'</span>':'<span class="selph">Kutu seçin</span>')
-   +'<i class="ic">'+ic(S.boxOpen?"cu":"cd",18,"#8A8A8A")+'</i></div>'
- +(S.boxOpen?'<div class="seldrop">'+KUTULAR.map(k=>'<div class="selopt'+(S.box===k?' on':'')+'" data-act="box" data-v="'+esc(k)+'">'+ic("box",14,S.box===k?"#C51515":"#9db8f0")+' '+esc(k)+(S.box===k?'<i class="ic" style="margin-left:auto;">'+ic("check",15,"#C51515")+'</i>':'')+'</div>').join('')+'</div>':'')
+   +'<i class="ic">'+ic("cd",18,"#8A8A8A")+'</i></div>'
  +'<div style="height:14px;"></div>'
  +'<label class="lbl">Ödeme şekli</label>'
  +'<div class="seg" style="margin-bottom:14px;"><button class="opt2'+(hav?' on':'')+'" data-act="method" data-v="havale">'+ic("bank",15)+' Havale / EFT</button><button class="opt2'+(hav?'':' on')+'" data-act="method" data-v="elden">'+ic("cash",15)+' Elden</button></div>'
  +'<label class="lbl">Alıcı isim soyadı</label>'
- +'<input class="field" id="f_name" placeholder="Ödemeyi alacak kişi / firma">'
- +(hav?'<label class="lbl">IBAN</label><input class="field" id="f_iban" placeholder="TR.." style="font-family:ui-monospace,Menlo,monospace;font-size:13px;">':'')
+ +'<input class="field" id="f_name" value="'+esc(F.name||"")+'" placeholder="Ödemeyi alacak kişi / firma">'
+ +(hav?'<label class="lbl">IBAN</label><input class="field" id="f_iban" value="'+esc(F.iban||"")+'" placeholder="TR.." style="font-family:ui-monospace,Menlo,monospace;font-size:13px;">':'')
  +'<label class="lbl">Tutar</label>'
  +'<div class="seg" style="margin-bottom:8px;"><button class="opt2'+(S.cur==="TL"?' on':'')+'" data-act="cur" data-v="TL">₺ TL</button><button class="opt2'+(S.cur==="USD"?' on':'')+'" data-act="cur" data-v="USD">$ USD</button></div>'
- +'<div class="amt"><span class="cur">'+sym(S.cur)+'</span><input id="f_amount" inputmode="decimal" placeholder="0" oninput="liveEq()"><span class="eq" id="f_eq"></span></div>'
+ +'<div class="amt"><span class="cur">'+sym(S.cur)+'</span><input id="f_amount" inputmode="decimal" value="'+esc(F.amount||"")+'" placeholder="0" oninput="liveEq()"><span class="eq" id="f_eq"></span></div>'
  +'<label class="lbl" style="margin-top:14px;">Açıklama / Detay</label>'
- +'<textarea class="field" id="f_desc" rows="3" placeholder="Bu ödeme ne için? (ör. mukavva alımı...)" style="resize:none;"></textarea>'
+ +'<textarea class="field" id="f_desc" rows="3" placeholder="Bu ödeme ne için? (ör. mukavva alımı...)" style="resize:none;">'+esc(F.desc||"")+'</textarea>'
  +'<div class="banner" style="margin-top:4px;background:#152033;border-color:#26405f;color:#9db8f0;">'+ic("info",14,"#9db8f0")+' Gönderdikten sonra masraf <b>Bekliyor</b> durumuna geçer ve yöneticinin onayına gider.</div>'
  +'<button class="btnred" style="margin-top:14px;" data-act="submit">'+ic("send",16,"#fff")+' Gönder</button>'
+ +'</div></div>'
+ +(S.picker==="kutu"?pickerSheet():"");
+}
+function pickerSheet(){
+ return '<div class="ovl ovl2"><div class="sheet picker">'
+ +'<div class="sheethead"><div class="sheettitle">Kutu seç</div><div class="xbtn" data-act="pickclose">'+ic("x",16,"#ccc")+'</div></div>'
+ +KUTULAR.map(k=>'<div class="pickitem'+(S.box===k?' on':'')+'" data-act="box" data-v="'+esc(k)+'"><span class="pk">'+ic("box",17,S.box===k?"#fff":"#9db8f0")+'</span>'+esc(k)+(S.box===k?'<i class="ic" style="margin-left:auto;">'+ic("check",17,"#C51515")+'</i>':'')+'</div>').join('')
  +'</div></div>';
 }
+function updateSheet(){$("sheethost").innerHTML=S.sheet==="yeni"?formSheet(true):"";}
 function liveEq(){const v=parseFloat(String(($("f_amount")||{}).value||"0").replace(/\./g,"").replace(",","."))||0;const e=$("f_eq");if(e)e.textContent=v>0?eqv(v,S.cur):"";}
 
 /* ============ RENDER ============ */
@@ -288,6 +304,7 @@ function toast(t){$("toasthost").innerHTML='<div class="toast">'+esc(t)+'</div>'
 
 /* ============ OLAYLAR ============ */
 $("app").addEventListener("click",async function(e){
+ if(e.target.classList&&e.target.classList.contains("ovl2")){S.picker=null;updateSheet();return;}
  if(e.target.classList&&e.target.classList.contains("ovl")){S.sheet=null;render();return;}
  const el=e.target.closest("[data-act]");if(!el)return;
  const a=el.getAttribute("data-act"),v=el.getAttribute("data-v");
@@ -306,18 +323,19 @@ $("app").addEventListener("click",async function(e){
  else if(a==="tab"){S.tab=v;S.sheet=null;render();}
  else if(a==="tabf"){S.tab="liste";S.f=v;render();}
  else if(a==="setf"){S.f=v;render();}
- else if(a==="open"){S.sheet=v;S.method="havale";S.cur="TL";S.box="";S.boxOpen=false;render();}
- else if(a==="close"){S.sheet=null;render();}
- else if(a==="boxbar"){captureForm();S.boxOpen=!S.boxOpen;render();}
- else if(a==="box"){captureForm();S.box=v;S.boxOpen=false;render();}
- else if(a==="method"){S.method=v;captureForm();render();}
- else if(a==="cur"){S.cur=v;captureForm();render();}
+ else if(a==="open"){S.sheet=v;S.method="havale";S.cur="TL";S.box="";S.picker=null;S.form={};render();}
+ else if(a==="close"){S.sheet=null;S.picker=null;render();}
+ else if(a==="boxpick"){captureForm();S.picker="kutu";updateSheet();}
+ else if(a==="pickclose"){S.picker=null;updateSheet();}
+ else if(a==="box"){S.box=v;S.picker=null;updateSheet();}
+ else if(a==="method"){captureForm();S.method=v;updateSheet();}
+ else if(a==="cur"){captureForm();S.cur=v;updateSheet();liveEq();}
  else if(a==="submit"){submitForm(el);}
  else if(a==="copy"){const t=v||"";const ok=()=>toast("IBAN kopyalandı");try{navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t).then(ok,ok):ok();}catch(_){ok();}}
 });
-let FORMCACHE={};
-function captureForm(){FORMCACHE={name:($("f_name")||{}).value||"",iban:($("f_iban")||{}).value||"",amount:($("f_amount")||{}).value||"",desc:($("f_desc")||{}).value||""};
- setTimeout(()=>{if($("f_name"))$("f_name").value=FORMCACHE.name;if($("f_iban"))$("f_iban").value=FORMCACHE.iban;if($("f_amount")){$("f_amount").value=FORMCACHE.amount;liveEq();}if($("f_desc"))$("f_desc").value=FORMCACHE.desc;},0);}
+function captureForm(){const g=id=>{const el=$(id);return el?el.value:undefined;};const f=S.form||{};
+ const k=(id,p)=>{const x=g(id);return x!==undefined?x:(f[p]||"");};
+ S.form={name:k("f_name","name"),iban:k("f_iban","iban"),amount:k("f_amount","amount"),desc:k("f_desc","desc")};}
 async function submitForm(btn){
  const name=($("f_name").value||"").trim();
  const amt=parseFloat(String($("f_amount").value||"").replace(/\./g,"").replace(",","."))||0;
