@@ -262,8 +262,9 @@ function masrafView(){
   const head='<div class="row hd"><div class="grow">AÇIKLAMA</div><div style="width:90px;">KUTU</div><div style="width:110px;text-align:right;">TL TUTAR</div><div style="width:95px;text-align:right;">USD</div><div style="width:96px;text-align:center;">DURUM</div><div style="width:172px;text-align:right;">İŞLEM</div></div>';
   const rows=list.map(masrafRow).join('')||'<div class="empty">Bu filtrede masraf yok.</div>';
   return '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">'
-   +'<input class="search" style="flex:1;min-width:200px;" placeholder="Açıklama / kutu ara…" value="'+esc(S.q)+'" data-search="1">'
-   +'<select class="sel" data-act="filtre" style="padding:10px 12px;">'+opts+'</select></div>'
+   +'<input class="search" style="flex:1;min-width:160px;" placeholder="Açıklama / kutu ara…" value="'+esc(S.q)+'" data-search="1">'
+   +'<select class="sel" data-act="filtre" style="padding:10px 12px;">'+opts+'</select>'
+   +'<button class="btn b-on" data-act="masrafGirAc" style="padding:10px 13px;">'+ic("plus",14,"#5fd08a")+' Masraf Girişi</button></div>'
    +'<div class="box">'+head+rows+'</div>';
 }
 function masrafRow(e){
@@ -378,9 +379,10 @@ function hesapView(){
 
   const D=hesapVeri(k);
 
-  const head='<div class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">'
+  const head='<div class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;gap:8px;flex-wrap:wrap;">'
     +'<span>'+ic("receipt",13,"#8A8A8A")+' '+esc(k).toUpperCase()+' · HESAP DÖKÜMÜ</span>'
-    +'<button class="btn b-w" data-act="hesapYazdir">'+ic("send",13,"#9db8f0")+' Yazdır / PDF</button></div>';
+    +'<span style="display:flex;gap:8px;"><button class="btn b-on" data-act="masrafGirAc" data-k="'+esc(k)+'">'+ic("plus",13,"#5fd08a")+' Masraf</button>'
+    +'<button class="btn b-w" data-act="hesapYazdir">'+ic("send",13,"#9db8f0")+' Yazdır / PDF</button></span></div>';
 
   /* PARA GİRİŞLERİ (dolar) */
   const girisRows=D.giris.length
@@ -580,6 +582,22 @@ function sheetOvl(){
      +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="dg_ack" class="field" placeholder="Örn. müşteri ödemesi">'
      +'<button class="btnred" style="margin-top:16px;" data-act="dolarKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Girişi Kaydet</button></div></div>';
   }
+  if(S.sheet==="masrafGir"){
+    const pk=(S.sheetData&&S.sheetData.kutu)||S.hesapKutu||KUTULAR[0];
+    const opts=KUTULAR.map(k=>'<option'+(pk===k?' selected':'')+'>'+esc(k)+'</option>').join('');
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Masraf Girişi</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+     +'<label class="lbl">Kutu (Marka)</label><select id="mg_kutu" class="field">'+opts+'</select>'
+     +'<div class="two"><div><label class="lbl">Ödeme Şekli</label><select id="mg_odeme" class="field"><option value="Elden">Elden</option><option value="Havale">Havale</option></select></div>'
+     +'<div><label class="lbl">Para Birimi</label><select id="mg_pb" class="field"><option value="TL">₺ TL</option><option value="USD">$ USD</option></select></div></div>'
+     +'<label class="lbl">Alıcı / Kalem</label><input id="mg_alici" class="field" placeholder="Örn. Mukavva Yerli Gri 1.3 mm">'
+     +'<label class="lbl">IBAN (yalnız havale ise)</label><input id="mg_iban" class="field mono" placeholder="TR..">'
+     +'<label class="lbl">Tutar</label><input id="mg_tutar" class="field" type="number" inputmode="decimal" placeholder="0">'
+     +'<label class="lbl">Açıklama / Detay (isteğe bağlı)</label><input id="mg_ack" class="field" placeholder="Örn. 70*100 cm · 5.200 tabaka">'
+     +'<div class="two"><div><label class="lbl">Durum</label><select id="mg_durum" class="field"><option value="Ödendi">Ödendi</option><option value="Bekliyor">Bekliyor</option><option value="Onaylandı">Onaylandı</option></select></div>'
+     +'<div><label class="lbl">Tarih</label><input id="mg_tar" class="field" value="'+bugun()+'"></div></div>'
+     +'<div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;">'+ic("alert",12,"#F5A623")+' "Ödendi" seçilirse masraf seçili kutunun kasasına işlenir. "Bekliyor" seçersen normal onay akışına düşer.</div>'
+     +'<button class="btnred" style="margin-top:14px;" data-act="masrafGirKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Masrafı Kaydet</button></div></div>';
+  }
   if(S.sheet==="stokGiris"){
     const ed=S.sheetData&&S.sheetData.row;
     const opts=KUTULAR.map(k=>'<option'+((S.sheetData&&S.sheetData.kutu===k)?' selected':'')+'>'+esc(k)+'</option>').join('');
@@ -751,6 +769,7 @@ document.addEventListener("click",async e=>{
   if(a==="kasaKutu"){S.kasaKutu=el.getAttribute("data-k");render();return;}
   if(a==="hesapKutu"){S.hesapKutu=el.getAttribute("data-k");render();return;}
   if(a==="hesapYazdir"){hesapYazdir();return;}
+  if(a==="masrafGirAc"){const dk=el.getAttribute("data-k");S.sheetData=dk?{kutu:dk}:null;S.sheet="masrafGir";render();return;}
   if(a==="onay"){setStatus(el.getAttribute("data-id"),el.getAttribute("data-d"));return;}
   if(a==="bozdurAc"){S.sheet="bozdur";render();return;}
   if(a==="dolarAc"){S.sheet="dolar";render();return;}
@@ -781,6 +800,19 @@ document.addEventListener("click",async e=>{
     try{const j=await api("dolarGiris",{data:{tarih:tar,usd:usdv,aciklama:ack,kutu:S.kasaKutu}});
       if(j.ok===false){toast(j.error||"Kaydedilemedi");S.busy=false;return;}
       toast("Dolar girişi · "+S.kasaKutu);S.sheet=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="masrafGirKaydet"){
+    const kutu=$("mg_kutu").value, odeme=$("mg_odeme").value, pb=$("mg_pb").value,
+          alici=($("mg_alici").value||"").trim(), iban=($("mg_iban").value||"").trim(),
+          tutar=parseFloat(($("mg_tutar").value||"").replace(",","."))||0,
+          ack=$("mg_ack").value, durum=$("mg_durum").value, tar=$("mg_tar").value;
+    if(!alici){toast("Alıcı / kalem girin");return;}
+    if(!(tutar>0)){toast("Tutar girin");return;}
+    if(odeme==="Havale" && !iban){toast("Havale için IBAN girin");return;}
+    if(S.busy)return;S.busy=true;
+    try{const j=await api("masrafEkle",{data:{kutu:kutu,odemeSekli:odeme,alici:alici,iban:iban,tutar:tutar,pb:pb,aciklama:ack,durum:durum,tarih:tar}});
+      if(j.ok===false){toast(j.error||"Kaydedilemedi");S.busy=false;return;}
+      toast("Masraf eklendi · "+durum);S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
     }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
   if(a==="stokGirisKaydet"){
     const kutu=$("sg_kutu").value, adet=parseInt(($("sg_adet").value||"").replace(/\D/g,""))||0, ack=$("sg_ack").value, tar=$("sg_tar").value;
