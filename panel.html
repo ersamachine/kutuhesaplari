@@ -96,7 +96,7 @@ let KASA={};
 let KUTUSTOK=[];let STOKGIRIS=[];let MUSTERILER=[];let TESLIMAT=[];let TAHSILAT=[];let MALZEME={};
 let DATA=[];
 
-const S={authed:false,kod:"",sifre:"",tab:"ozet",f:"all",q:"",selKutu:"Rolex",openKutu:"Rolex",kasaKutu:"Rolex",malzKutu:"Rolex",sheet:null,sheetData:null,busy:false,loading:false,err:""};
+const S={authed:false,kod:"",sifre:"",tab:"ozet",f:"all",q:"",selKutu:"Rolex",openKutu:"Rolex",kasaKutu:"Rolex",malzKutu:"Rolex",hesapKutu:"Rolex",sheet:null,sheetData:null,busy:false,loading:false,err:""};
 try{const a=JSON.parse(localStorage.getItem("km_yonetici")||"null");if(a&&a.kod){S.kod=a.kod;S.sifre=a.sifre;S.authed=true;}}catch(e){}
 
 async function api(action,extra){
@@ -117,6 +117,7 @@ function applyData(j){
   if(KUTULAR.indexOf(S.selKutu)<0)S.selKutu=KUTULAR[0]||"Rolex";
   if(KUTULAR.indexOf(S.kasaKutu)<0)S.kasaKutu=KUTULAR[0]||"Rolex";
   if(KUTULAR.indexOf(S.malzKutu)<0)S.malzKutu=KUTULAR[0]||"Rolex";
+  if(KUTULAR.indexOf(S.hesapKutu)<0)S.hesapKutu=KUTULAR[0]||"Rolex";
   DATA=(j.masraflar||[]).map(m=>{
     const pb=m.pb||"TL", t=Number(m.tutar)||0;
     const tlT=pb==="TL"?t:0, usdT=pb==="USD"?t:(RATE?t/RATE:0);
@@ -158,8 +159,8 @@ function cntBox(box,st){return DATA.filter(e=>e.kutu===box&&e.durum===st).length
 /* ---- KPI / pill yardımcı ---- */
 function kpi(t,v,x,i,c,al){return '<div class="kpi'+(al?' alert':'')+'"><div class="t">'+ic(i,12,c)+' '+t+'</div><div class="v" style="color:'+c+';">'+v+'</div>'+(x?'<div class="x">'+x+'</div>':'')+'</div>';}
 
-const TABS=[["ozet","Özet","grid"],["masraf","Masraf Onayları","check"],["kutu","Kutu Maliyetleri","box"],["kasa","Kasa & Döviz","coins"],["stok","Stok","layers"],["cari","Müşteri & Cari","users"],["malzeme","Stok Malzemeler","pkg"]];
-const TITLE={ozet:["Özet","Üretim maliyeti tek bakışta"],masraf:["Masraf Onayları","Personelden gelen masraf satırları — onaylayın / ödeyin"],kutu:["Kutu Maliyetleri","Marka bazında maliyet dökümü"],kasa:["Kasa & Döviz","Her kutu için ayrı kasa · döviz bozdurma"],stok:["Stok","Bitmiş kutu stoğu — marka bazında"],cari:["Müşteri Teslimat & Cari","Müşteri kayıtları, teslimatlar ve cari bakiye (USD)"],malzeme:["Stok Malzemeler","Eski kutulardan kalan malzemeler — marka bazında"]};
+const TABS=[["ozet","Özet","grid"],["masraf","Masraf Onayları","check"],["kutu","Kutu Maliyetleri","box"],["kasa","Kasa & Döviz","coins"],["hesap","Hesap Dökümü","receipt"],["stok","Stok","layers"],["cari","Müşteri & Cari","users"],["malzeme","Stok Malzemeler","pkg"]];
+const TITLE={ozet:["Özet","Üretim maliyeti tek bakışta"],masraf:["Masraf Onayları","Personelden gelen masraf satırları — onaylayın / ödeyin"],kutu:["Kutu Maliyetleri","Marka bazında maliyet dökümü"],kasa:["Kasa & Döviz","Her kutu için ayrı kasa · döviz bozdurma"],hesap:["Hesap Dökümü","Marka bazında tüm para girişleri ve masraflar — yazdırılabilir döküm"],stok:["Stok","Bitmiş kutu stoğu — marka bazında"],cari:["Müşteri Teslimat & Cari","Müşteri kayıtları, teslimatlar ve cari bakiye (USD)"],malzeme:["Stok Malzemeler","Eski kutulardan kalan malzemeler — marka bazında"]};
 function badgeOf(t){if(t==="masraf"){const n=cnt("bekliyor");return n?[n,"#F5A623","#111"]:null;}return null;}
 
 /* ============ RENDER ============ */
@@ -193,6 +194,7 @@ function viewFor(){
     case "masraf": return masrafView();
     case "kutu": return kutuView();
     case "kasa": return kasaView();
+    case "hesap": return hesapView();
     case "stok": return stokView();
     case "cari": return cariView();
     case "malzeme": return malzemeView();
@@ -352,6 +354,124 @@ function kasaView(){
   return sel+top+giris+boz+dolar+lira+not;
 }
 function kvrow(l,v,c,bold){return '<div class="row"'+(bold?' style="background:var(--card2);"':'')+'><div class="grow"'+(bold?' style="font-weight:800;"':'')+'>'+esc(l)+'</div><div style="text-align:right;font-weight:'+(bold?'800':'700')+';color:'+(c||'#fff')+';" class="mono">'+v+'</div></div>';}
+
+/* ============ HESAP DÖKÜMÜ (marka bazında para girişleri + masraflar · yazdırılabilir) ============ */
+function hesapVeri(k){
+  const masraflar=DATA.filter(e=>e.kutu===k);
+  const K=(KASA&&KASA[k])?KASA[k]:{};
+  const giris=(K.girisList||[]).slice();
+  const boz=(K.bozList||[]).slice();
+  const mTL=masraflar.reduce((a,e)=>a+(e.tlT||0),0);
+  const mUSD=masraflar.reduce((a,e)=>a+(e.usdT||0),0);
+  const odTL=masraflar.filter(e=>e.durum==="odendi").reduce((a,e)=>a+(e.tlT||0),0);
+  const odUSD=masraflar.filter(e=>e.durum==="odendi").reduce((a,e)=>a+(e.usdT||0),0);
+  const gUSD=giris.reduce((a,g)=>a+(g.usd||0),0);
+  const bzUSD=boz.reduce((a,b)=>a+(b.usd||0),0), bzTL=boz.reduce((a,b)=>a+(b.eldeTL||0),0);
+  return {masraflar,giris,boz,mTL,mUSD,odTL,odUSD,gUSD,bzUSD,bzTL};
+}
+function hesapView(){
+  const k=S.hesapKutu;
+  const sel='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">'+KUTULAR.map(b=>{
+      const on=k===b;const v=hesapVeri(b);const has=v.masraflar.length||v.giris.length||v.boz.length;
+      return '<div data-act="hesapKutu" data-k="'+esc(b)+'" style="padding:9px 14px;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid '+(on?'var(--red)':'var(--line)')+';background:'+(on?'var(--red)':'var(--card)')+';color:'+(on?'#fff':(has?'#dcdcdc':'#6b6b6b'))+';display:flex;align-items:center;gap:6px;">'+ic("box",13,on?'#fff':(has?'#9db8f0':'#555'))+esc(b)+(has?'':' <span style="font-size:9px;opacity:.6;">boş</span>')+'</div>';
+    }).join('')+'</div>';
+
+  const D=hesapVeri(k);
+
+  const head='<div class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">'
+    +'<span>'+ic("receipt",13,"#8A8A8A")+' '+esc(k).toUpperCase()+' · HESAP DÖKÜMÜ</span>'
+    +'<button class="btn b-w" data-act="hesapYazdir">'+ic("send",13,"#9db8f0")+' Yazdır / PDF</button></div>';
+
+  /* PARA GİRİŞLERİ (dolar) */
+  const girisRows=D.giris.length
+    ? D.giris.slice().reverse().map(g=>'<div class="row"><div class="grow"><div class="mono">'+esc(g.tarih||"")+'</div><div style="font-size:11px;color:var(--muted);" class="nowrap">'+esc(g.aciklama||"Dolar girişi")+'</div></div><div style="text-align:right;font-weight:700;color:#2ED573;" class="mono">+'+usd(g.usd)+'</div></div>').join('')
+    : '<div class="empty">Para girişi yok.</div>';
+  const girisBox='<div class="sec">'+ic("cash",13,"#2ED573")+' PARA GİRİŞLERİ (USD)</div><div class="box">'+girisRows
+    +(D.giris.length?'<div class="row" style="background:var(--card2);"><div class="grow" style="font-weight:800;">TOPLAM GİRİŞ</div><div style="text-align:right;font-weight:800;color:#2ED573;" class="mono">'+usd(D.gUSD)+'</div></div>':'')+'</div>';
+
+  /* DÖVİZ BOZDURMA */
+  const bozRows=D.boz.length
+    ? D.boz.slice().reverse().map(b=>'<div class="row"><div class="grow mono">'+esc(b.tarih||"")+'</div><div style="width:100px;text-align:right;" class="mono">'+usd(b.usd)+'</div><div style="width:70px;text-align:right;color:#F5A623;" class="mono">'+Number(b.kur||0).toLocaleString("tr-TR",{maximumFractionDigits:2})+'</div><div style="width:120px;text-align:right;font-weight:700;color:#5B8DEF;" class="mono">'+tl(b.eldeTL)+'</div></div>').join('')
+    : '';
+  const bozBox=D.boz.length?('<div class="sec">'+ic("coins",13,"#F5A623")+' DÖVİZ BOZDURMA</div><div class="box">'
+    +'<div class="row hd"><div class="grow">TARİH</div><div style="width:100px;text-align:right;">BOZDURULAN $</div><div style="width:70px;text-align:right;">KUR</div><div style="width:120px;text-align:right;">ELDE TL</div></div>'
+    +bozRows
+    +'<div class="row" style="background:var(--card2);"><div class="grow" style="font-weight:800;">TOPLAM</div><div style="width:100px;text-align:right;font-weight:800;" class="mono">'+usd(D.bzUSD)+'</div><div style="width:70px;"></div><div style="width:120px;text-align:right;font-weight:800;color:#5B8DEF;" class="mono">'+tl(D.bzTL)+'</div></div></div>'):'';
+
+  /* MASRAFLAR — her satır tek tek */
+  const masrafRows=D.masraflar.length
+    ? D.masraflar.map(e=>'<div class="row tap" data-act="masrafDetay" data-id="'+esc(e.id)+'" style="cursor:pointer;"><div class="grow"><div style="font-weight:600;" class="nowrap">'+esc(e.aciklama)+'</div><div style="font-size:11px;color:var(--muted);" class="nowrap">'+esc(e.tarih||"")+(e.olcu?' · '+esc(e.olcu):'')+(e.giren?' · '+esc(e.giren):'')+'</div></div>'
+        +'<div style="width:92px;text-align:center;">'+pill(e.durum)+'</div>'
+        +'<div style="width:122px;text-align:right;font-weight:700;color:'+(e.pb==="USD"?'#F5A623':'#fff')+';" class="mono">'+(e.pb==="USD"?usd(e.tutarRaw):tl(e.tutarRaw))+'</div></div>').join('')
+    : '<div class="empty">Masraf kaydı yok.</div>';
+  const masrafBox='<div class="sec">'+ic("wallet",13,"#F5A623")+' MASRAFLAR ('+D.masraflar.length+' kalem)</div><div class="box">'+masrafRows
+    +(D.masraflar.length?'<div class="row" style="background:var(--card2);"><div class="grow" style="font-weight:800;">TOPLAM MASRAF</div><div style="width:122px;text-align:right;font-weight:800;" class="mono">'+tl(D.mTL)+'</div></div>'
+      +(D.mUSD?'<div class="row" style="background:var(--card2);"><div class="grow" style="font-weight:800;color:#F5A623;">TOPLAM MASRAF (USD)</div><div style="width:122px;text-align:right;font-weight:800;color:#F5A623;" class="mono">'+usd(D.mUSD)+'</div></div>':'')
+      +'<div class="row"><div class="grow" style="color:var(--muted);">Bunlardan ödenen</div><div style="text-align:right;color:#2ED573;" class="mono">'+tl(D.odTL)+(D.odUSD?' · '+usd(D.odUSD):'')+'</div></div>':'')+'</div>';
+
+  return sel+head+girisBox+bozBox+masrafBox
+   +'<div style="font-size:11px;color:var(--muted);margin-top:14px;line-height:1.5;">'+ic("alert",12,"#F5A623")+' Bu döküm seçili markanın <b>tüm</b> para girişlerini ve masraflarını (durum fark etmeksizin) listeler. "Yazdır / PDF" ile çıktı alabilir veya PDF olarak kaydedebilirsin. Masraf satırına tıklayınca detayını görürsün.</div>';
+}
+function hesapYazdir(){
+  const k=S.hesapKutu, D=hesapVeri(k);
+  const fTL=n=>"₺"+Math.round(Number(n)||0).toLocaleString("tr-TR");
+  const fUSD=n=>"$"+Math.round(Number(n)||0).toLocaleString("tr-TR");
+  const DL={bekliyor:"Bekliyor",onaylandi:"Onaylandı",odendi:"Ödendi",reddedildi:"Reddedildi"};
+  const e2=s=>String(s==null?"":s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));
+
+  const girisHTML=D.giris.length
+    ? D.giris.map(g=>'<tr><td>'+e2(g.tarih||"")+'</td><td>'+e2(g.aciklama||"Dolar girişi")+'</td><td class="r mono">'+fUSD(g.usd)+'</td></tr>').join('')
+      +'<tr class="tot"><td colspan="2">TOPLAM GİRİŞ</td><td class="r mono">'+fUSD(D.gUSD)+'</td></tr>'
+    : '<tr><td colspan="3" class="em">Para girişi yok.</td></tr>';
+
+  const bozHTML=D.boz.length
+    ? D.boz.map(b=>'<tr><td>'+e2(b.tarih||"")+'</td><td class="r mono">'+fUSD(b.usd)+'</td><td class="r mono">'+Number(b.kur||0).toLocaleString("tr-TR",{maximumFractionDigits:2})+'</td><td class="r mono">'+fTL(b.eldeTL)+'</td></tr>').join('')
+      +'<tr class="tot"><td>TOPLAM</td><td class="r mono">'+fUSD(D.bzUSD)+'</td><td></td><td class="r mono">'+fTL(D.bzTL)+'</td></tr>'
+    : '';
+  const bozBlok=D.boz.length?('<h2>Döviz Bozdurma</h2><table><thead><tr><th>Tarih</th><th class="r">Bozdurulan $</th><th class="r">Kur</th><th class="r">Elde TL</th></tr></thead><tbody>'+bozHTML+'</tbody></table>'):'';
+
+  const masrafHTML=D.masraflar.length
+    ? D.masraflar.map(m=>'<tr><td>'+e2(m.tarih||"")+'</td><td>'+e2(m.aciklama)+(m.olcu?' <span class="mut">· '+e2(m.olcu)+'</span>':'')+'</td><td>'+e2(m.giren||"")+'</td><td>'+e2(DL[m.durum]||"")+'</td><td class="r mono">'+(m.pb==="USD"?fUSD(m.tutarRaw):fTL(m.tutarRaw))+'</td></tr>').join('')
+      +'<tr class="tot"><td colspan="4">TOPLAM MASRAF</td><td class="r mono">'+fTL(D.mTL)+(D.mUSD?' + '+fUSD(D.mUSD):'')+'</td></tr>'
+    : '<tr><td colspan="5" class="em">Masraf kaydı yok.</td></tr>';
+
+  const html='<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>'+e2(k)+' · Hesap Dökümü</title><style>'
+    +'*{box-sizing:border-box;font-family:-apple-system,Segoe UI,Arial,sans-serif;}'
+    +'body{margin:0;padding:26px 30px;color:#161616;}'
+    +'.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #C51515;padding-bottom:12px;margin-bottom:6px;}'
+    +'.head .l .t{font-size:20px;font-weight:800;letter-spacing:-.3px;}.head .l .s{font-size:11px;color:#777;margin-top:2px;}'
+    +'.brand{background:#C51515;color:#fff;padding:6px 14px;border-radius:7px;font-weight:800;font-size:16px;}'
+    +'.head .r2{text-align:right;font-size:11px;color:#777;}'
+    +'h2{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#444;margin:22px 0 7px;border-left:4px solid #C51515;padding-left:9px;}'
+    +'table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:4px;}'
+    +'th{text-align:left;background:#f3f3f3;padding:7px 9px;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:#666;border-bottom:1px solid #ddd;}'
+    +'td{padding:6px 9px;border-bottom:1px solid #eee;vertical-align:top;}'
+    +'.r{text-align:right;}.mono{font-variant-numeric:tabular-nums;white-space:nowrap;}.mut{color:#999;font-size:10px;}'
+    +'tr.tot td{font-weight:800;background:#fafafa;border-top:2px solid #ccc;border-bottom:none;}'
+    +'.em{color:#999;text-align:center;padding:14px;}'
+    +'.sum{display:flex;gap:12px;margin:14px 0 4px;flex-wrap:wrap;}'
+    +'.sum .c{flex:1;min-width:120px;border:1px solid #e4e4e4;border-radius:9px;padding:10px 13px;}'
+    +'.sum .c .t{font-size:9.5px;color:#888;text-transform:uppercase;letter-spacing:.4px;}'
+    +'.sum .c .v{font-size:17px;font-weight:800;margin-top:4px;}'
+    +'.foot{margin-top:28px;font-size:9.5px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:9px;}'
+    +'@media print{body{padding:0;}@page{margin:14mm;}}'
+    +'</style></head><body>'
+    +'<div class="head"><div class="l"><div class="t">KUTU MASRAFLARI</div><div class="s">Marka Hesap Dökümü</div></div>'
+      +'<div class="r2"><span class="brand">'+e2(k)+'</span><div style="margin-top:7px;">Döküm tarihi: '+bugun()+'</div></div></div>'
+    +'<div class="sum"><div class="c"><div class="t">Toplam Para Girişi</div><div class="v" style="color:#1F9D52;">'+fUSD(D.gUSD)+'</div></div>'
+      +(D.boz.length?'<div class="c"><div class="t">Bozdurmadan Elde TL</div><div class="v" style="color:#2563C9;">'+fTL(D.bzTL)+'</div></div>':'')
+      +'<div class="c"><div class="t">Toplam Masraf</div><div class="v" style="color:#C51515;">'+fTL(D.mTL)+(D.mUSD?' + '+fUSD(D.mUSD):'')+'</div></div></div>'
+    +'<h2>Para Girişleri (USD)</h2><table><thead><tr><th>Tarih</th><th>Açıklama</th><th class="r">Tutar</th></tr></thead><tbody>'+girisHTML+'</tbody></table>'
+    +bozBlok
+    +'<h2>Masraflar ('+D.masraflar.length+' kalem)</h2><table><thead><tr><th>Tarih</th><th>Kalem</th><th>Giren</th><th>Durum</th><th class="r">Tutar</th></tr></thead><tbody>'+masrafHTML+'</tbody></table>'
+    +'<div class="foot">KUTU MASRAFLARI · Yönetici Paneli — '+e2(k)+' hesap dökümü · '+bugun()+'</div>'
+    +'</body></html>';
+
+  const w=window.open("","_blank");
+  if(!w){toast("Açılır pencere engellendi — izin verin");return;}
+  w.document.open();w.document.write(html);w.document.close();w.focus();
+  setTimeout(function(){try{w.print();}catch(_){}} ,350);
+}
 
 /* ============ STOK (bitmiş kutu) ============ */
 function stColOf(m){const C=["#C51515","#5B8DEF","#9B7BFF","#F5A623","#2ED573","#e36bb5","#4ecdc4"];const i=KUTULAR.indexOf(m);return C[(i<0?0:i)%C.length];}
@@ -629,6 +749,8 @@ document.addEventListener("click",async e=>{
   if(a==="selkutu"){S.selKutu=el.getAttribute("data-k");render();return;}
   if(a==="kutuTog"){const k=el.getAttribute("data-k");S.openKutu=S.openKutu===k?null:k;render();return;}
   if(a==="kasaKutu"){S.kasaKutu=el.getAttribute("data-k");render();return;}
+  if(a==="hesapKutu"){S.hesapKutu=el.getAttribute("data-k");render();return;}
+  if(a==="hesapYazdir"){hesapYazdir();return;}
   if(a==="onay"){setStatus(el.getAttribute("data-id"),el.getAttribute("data-d"));return;}
   if(a==="bozdurAc"){S.sheet="bozdur";render();return;}
   if(a==="dolarAc"){S.sheet="dolar";render();return;}
