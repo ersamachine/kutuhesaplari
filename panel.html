@@ -368,7 +368,8 @@ function hesapVeri(k){
   const odUSD=masraflar.filter(e=>e.durum==="odendi").reduce((a,e)=>a+(e.usdT||0),0);
   const gUSD=giris.reduce((a,g)=>a+(g.usd||0),0);
   const bzUSD=boz.reduce((a,b)=>a+(b.usd||0),0), bzTL=boz.reduce((a,b)=>a+(b.eldeTL||0),0);
-  return {masraflar,giris,boz,mTL,mUSD,odTL,odUSD,gUSD,bzUSD,bzTL};
+  const dolarBakiye=Number(K.dolarBakiye)||0, tlBakiye=Number(K.tlBakiye)||0, netUSD=Number(K.netUSD)||0, ortKur=Number(K.ortKur)||0;
+  return {masraflar,giris,boz,mTL,mUSD,odTL,odUSD,gUSD,bzUSD,bzTL,dolarBakiye,tlBakiye,netUSD,ortKur};
 }
 function hesapView(){
   const k=S.hesapKutu;
@@ -383,6 +384,15 @@ function hesapView(){
     +'<span>'+ic("receipt",13,"#8A8A8A")+' '+esc(k).toUpperCase()+' · HESAP DÖKÜMÜ</span>'
     +'<span style="display:flex;gap:8px;"><button class="btn b-on" data-act="masrafGirAc" data-k="'+esc(k)+'">'+ic("plus",13,"#5fd08a")+' Masraf</button>'
     +'<button class="btn b-w" data-act="hesapYazdir">'+ic("send",13,"#9db8f0")+' Yazdır / PDF</button></span></div>';
+
+  const kalanCell=function(lab,val,col,sub){return '<div style="flex:1;padding:13px 15px;border-right:1px solid var(--line);"><div style="font-size:9.5px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;">'+lab+'</div><div style="font-size:21px;font-weight:800;color:'+col+';margin-top:5px;" class="mono">'+val+'</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">'+sub+'</div></div>';};
+  const kalan='<div style="border:1.5px solid var(--red);border-radius:12px;overflow:hidden;margin-bottom:4px;">'
+    +'<div style="background:var(--red);color:#fff;font-size:11px;font-weight:800;letter-spacing:.6px;padding:8px 14px;">KASADA KALAN PARA</div>'
+    +'<div style="display:flex;background:var(--card);">'
+    +kalanCell("Dolar Bakiyesi",usd(D.dolarBakiye),"#2ED573","gerçek USD")
+    +kalanCell("TL Bakiyesi",tl(D.tlBakiye),"#5B8DEF","gerçek ₺")
+    +kalanCell("Toplam Net",usd(D.netUSD),"#9B7BFF","≈ USD"+(D.ortKur?" (ort. kur "+D.ortKur.toLocaleString("tr-TR",{maximumFractionDigits:2})+")":""))
+    +'</div></div>';
 
   /* PARA GİRİŞLERİ (dolar) */
   const girisRows=D.giris.length
@@ -413,8 +423,8 @@ function hesapView(){
     +(D.masraflar.length?'<div class="row" style="background:var(--card2);"><div class="grow" style="font-weight:800;">TOPLAM MASRAF</div><div style="width:88px;"></div><div style="width:104px;text-align:right;font-weight:800;color:#fff;" class="mono">'+tl(D.mTL)+'</div><div style="width:104px;text-align:right;font-weight:800;color:#2ED573;" class="mono">'+(D.mUSD?usd(D.mUSD):dash)+'</div></div>'
       +'<div class="row"><div class="grow" style="color:var(--muted);">Bunlardan ödenen</div><div style="width:88px;"></div><div style="width:104px;text-align:right;color:#9db8f0;" class="mono">'+tl(D.odTL)+'</div><div style="width:104px;text-align:right;color:#2ED573;" class="mono">'+(D.odUSD?usd(D.odUSD):dash)+'</div></div>':'')+'</div>';
 
-  return sel+head+girisBox+bozBox+masrafBox
-   +'<div style="font-size:11px;color:var(--muted);margin-top:14px;line-height:1.5;">'+ic("alert",12,"#F5A623")+' Bu döküm seçili markanın <b>tüm</b> para girişlerini ve masraflarını (durum fark etmeksizin) listeler. "Yazdır / PDF" ile çıktı alabilir veya PDF olarak kaydedebilirsin. Masraf satırına tıklayınca detayını görürsün.</div>';
+  return sel+head+kalan+girisBox+bozBox+masrafBox
+   +'<div style="font-size:11px;color:var(--muted);margin-top:14px;line-height:1.5;">'+ic("alert",12,"#F5A623")+' Bu döküm seçili markanın <b>tüm</b> para girişlerini ve masraflarını (durum fark etmeksizin) listeler. "Kasada Kalan" = para girişi − bozdurulan − ödenen masraf (her birim ayrı). "Yazdır / PDF" ile çıktı alabilirsin.</div>';
 }
 function hesapYazdir(){
   const k=S.hesapKutu, D=hesapVeri(k);
@@ -468,6 +478,12 @@ function hesapYazdir(){
     +'<div class="sum"><div class="c"><div class="t">Toplam Para Girişi</div><div class="v" style="color:#1F9D52;">'+fUSD(D.gUSD)+'</div></div>'
       +(D.boz.length?'<div class="c"><div class="t">Bozdurmadan Elde TL</div><div class="v" style="color:#2563C9;">'+fTL(D.bzTL)+'</div></div>':'')
       +'<div class="c"><div class="t">Toplam Masraf</div><div class="v" style="color:#C51515;">'+fTL(D.mTL)+(D.mUSD?' + '+fUSD(D.mUSD):'')+'</div></div></div>'
+    +'<div style="margin-top:16px;border:2px solid #C51515;border-radius:10px;overflow:hidden;">'
+      +'<div style="background:#C51515;color:#fff;font-size:11px;font-weight:500;letter-spacing:.6px;padding:8px 14px;">KASADA KALAN PARA</div><div style="display:flex;">'
+      +'<div style="flex:1;padding:14px 16px;border-right:1px solid #eee;"><div style="font-size:9.5px;color:#888;text-transform:uppercase;letter-spacing:.4px;">Dolar Bakiyesi</div><div style="font-size:22px;font-weight:500;color:#1F9D52;margin-top:5px;">'+fUSD(D.dolarBakiye)+'</div><div style="font-size:10px;color:#999;margin-top:2px;">gerçek USD</div></div>'
+      +'<div style="flex:1;padding:14px 16px;border-right:1px solid #eee;"><div style="font-size:9.5px;color:#888;text-transform:uppercase;letter-spacing:.4px;">TL Bakiyesi</div><div style="font-size:22px;font-weight:500;color:#2563C9;margin-top:5px;">'+fTL(D.tlBakiye)+'</div><div style="font-size:10px;color:#999;margin-top:2px;">gerçek ₺</div></div>'
+      +'<div style="flex:1;padding:14px 16px;"><div style="font-size:9.5px;color:#888;text-transform:uppercase;letter-spacing:.4px;">Toplam Net</div><div style="font-size:22px;font-weight:500;color:#534AB7;margin-top:5px;">'+fUSD(D.netUSD)+'</div><div style="font-size:10px;color:#999;margin-top:2px;">≈ USD'+(D.ortKur?' (ort. kur '+D.ortKur.toLocaleString("tr-TR",{maximumFractionDigits:2})+')':'')+'</div></div>'
+      +'</div></div>'
     +'<h2>Para Girişleri (USD)</h2><table><thead><tr><th>Tarih</th><th>Açıklama</th><th class="r">Tutar</th></tr></thead><tbody>'+girisHTML+'</tbody></table>'
     +bozBlok
     +'<h2>Masraflar ('+D.masraflar.length+' kalem)</h2><table><thead><tr><th>Tarih</th><th>Kalem</th><th>Giren</th><th>Durum</th><th class="r">TL Tutar</th><th class="r usd">USD Tutar</th></tr></thead><tbody>'+masrafHTML+'</tbody></table>'
