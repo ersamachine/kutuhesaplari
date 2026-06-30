@@ -323,7 +323,7 @@ function kasaView(){
    +kpi("TOPLAM NET",usd(K.netUSD||0),"≈ USD (ort. kur "+(ort?ort.toLocaleString("tr-TR",{maximumFractionDigits:2}):"—")+")","chart","#9B7BFF")+'</div>';
 
   const gl=(K.girisList||[]);
-  const girisRows=gl.length?gl.slice().reverse().map(g=>'<div class="row"><div class="grow"><div class="mono">'+esc(g.tarih||"")+'</div><div style="font-size:11px;color:var(--muted);" class="nowrap">'+esc(g.aciklama||"")+'</div></div><div style="text-align:right;font-weight:700;" class="mono">'+usd(g.usd)+'</div></div>').join(''):'<div class="empty">Henüz dolar girişi yok.</div>';
+  const girisRows=gl.length?gl.slice().reverse().map(g=>'<div class="row tap" data-act="dolarDuzelt" data-row="'+g.row+'" style="cursor:pointer;"><div class="grow"><div class="mono">'+esc(g.tarih||"")+'</div><div style="font-size:11px;color:var(--muted);" class="nowrap">'+esc(g.aciklama||"")+' · düzenle</div></div><div style="text-align:right;font-weight:700;" class="mono">'+usd(g.usd)+'</div></div>').join(''):'<div class="empty">Henüz dolar girişi yok.</div>';
   const giris='<div class="sec" style="display:flex;justify-content:space-between;align-items:center;">'
    +'<span>'+ic("cash",13,"#2ED573")+' DOLAR GİRİŞLERİ</span>'
    +'<button class="btn b-on" data-act="dolarAc">'+ic("plus",13,"#5fd08a")+' Dolar Girişi</button></div>'
@@ -580,12 +580,15 @@ function sheetOvl(){
      +'<button class="btnred" style="margin-top:16px;" data-act="bozdurKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Bozdurmayı Kaydet</button></div></div>';
   }
   if(S.sheet==="dolar"){
-    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Dolar Girişi · '+esc(S.kasaKutu)+'</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+    const ed=S.sheetData&&S.sheetData.row;
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">'+(ed?"Dolar Girişi Düzelt":"Dolar Girişi")+' · '+esc(S.kasaKutu)+'</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
      +'<div style="font-size:11.5px;color:var(--muted);margin-bottom:12px;">Gelen dolar ödemesini <b>'+esc(S.kasaKutu)+'</b> USD hesabına ekler.</div>'
-     +'<label class="lbl">Tarih</label><input id="dg_tar" class="field" value="'+bugun()+'">'
-     +'<label class="lbl">Tutar (USD)</label><input id="dg_usd" class="field" type="number" inputmode="decimal" placeholder="0">'
-     +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="dg_ack" class="field" placeholder="Örn. müşteri ödemesi">'
-     +'<button class="btnred" style="margin-top:16px;" data-act="dolarKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Girişi Kaydet</button></div></div>';
+     +'<label class="lbl">Tarih</label><input id="dg_tar" class="field" value="'+esc((S.sheetData&&S.sheetData.tarih)||bugun())+'">'
+     +'<label class="lbl">Tutar (USD)</label><input id="dg_usd" class="field" type="number" inputmode="decimal" placeholder="0" value="'+((S.sheetData&&S.sheetData.usd)||"")+'">'
+     +'<label class="lbl">Açıklama (isteğe bağlı)</label><input id="dg_ack" class="field" placeholder="Örn. müşteri ödemesi" value="'+esc((S.sheetData&&S.sheetData.aciklama)||"")+'">'
+     +'<button class="btnred" style="margin-top:16px;" data-act="'+(ed?"dolarGuncelle":"dolarKaydet")+'" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+(ed?" Güncelle":" Girişi Kaydet")+'</button>'
+     +(ed?'<button class="btn b-no" style="width:100%;justify-content:center;margin-top:9px;" data-act="dolarSil" data-row="'+S.sheetData.row+'">'+ic("x",14,"#ff8a8a")+' Bu Girişi Sil</button>':'')
+     +'</div></div>';
   }
   if(S.sheet==="masrafGir"){
     const pk=(S.sheetData&&S.sheetData.kutu)||S.hesapKutu||KUTULAR[0];
@@ -777,7 +780,8 @@ document.addEventListener("click",async e=>{
   if(a==="masrafGirAc"){const dk=el.getAttribute("data-k");S.sheetData=dk?{kutu:dk}:null;S.sheet="masrafGir";render();return;}
   if(a==="onay"){setStatus(el.getAttribute("data-id"),el.getAttribute("data-d"));return;}
   if(a==="bozdurAc"){S.sheet="bozdur";render();return;}
-  if(a==="dolarAc"){S.sheet="dolar";render();return;}
+  if(a==="dolarAc"){S.sheetData=null;S.sheet="dolar";render();return;}
+  if(a==="dolarDuzelt"){const r=+el.getAttribute("data-row");const g=(((KASA[S.kasaKutu]||{}).girisList)||[]).filter(x=>x.row===r)[0];if(g){S.sheetData={row:r,tarih:g.tarih,usd:g.usd,aciklama:g.aciklama};S.sheet="dolar";render();}return;}
   if(a==="stokGirisAc"){S.sheet="stokGiris";render();return;}
   if(a==="stokDetay"){S.sheetData={kutu:el.getAttribute("data-m")};S.sheet="stokDetay";render();return;}
   if(a==="musAc"){S.sheet="musYeni";render();return;}
@@ -805,6 +809,20 @@ document.addEventListener("click",async e=>{
     try{const j=await api("dolarGiris",{data:{tarih:tar,usd:usdv,aciklama:ack,kutu:S.kasaKutu}});
       if(j.ok===false){toast(j.error||"Kaydedilemedi");S.busy=false;return;}
       toast("Dolar girişi · "+S.kasaKutu);S.sheet=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="dolarGuncelle"){
+    const usdv=parseFloat(($("dg_usd").value||"").replace(",","."))||0, ack=$("dg_ack").value, tar=$("dg_tar").value;
+    if(!(usdv>0)){toast("USD tutarı girin");return;}
+    if(S.busy)return;S.busy=true;
+    try{const j=await api("dolarGirisGuncelle",{data:{row:S.sheetData.row,tarih:tar,usd:usdv,aciklama:ack,kutu:S.kasaKutu}});
+      if(j.ok===false){toast(j.error||"Güncellenemedi");S.busy=false;return;}
+      toast("Dolar girişi güncellendi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="dolarSil"){
+    if(!confirm("Bu dolar girişi silinsin mi?"))return; if(S.busy)return;S.busy=true;
+    try{const j=await api("dolarGirisSil",{data:{row:+el.getAttribute("data-row")}});
+      if(j.ok===false){toast(j.error||"Silinemedi");S.busy=false;return;}
+      toast("Dolar girişi silindi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
     }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
   if(a==="masrafGirKaydet"){
     const kutu=$("mg_kutu").value, odeme=$("mg_odeme").value, pb=$("mg_pb").value,
