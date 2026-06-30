@@ -401,15 +401,17 @@ function hesapView(){
     +'<div class="row" style="background:var(--card2);"><div class="grow" style="font-weight:800;">TOPLAM</div><div style="width:100px;text-align:right;font-weight:800;" class="mono">'+usd(D.bzUSD)+'</div><div style="width:70px;"></div><div style="width:120px;text-align:right;font-weight:800;color:#5B8DEF;" class="mono">'+tl(D.bzTL)+'</div></div></div>'):'';
 
   /* MASRAFLAR — her satır tek tek */
+  var dash='<span style="color:#3a3a3a;">—</span>';
+  const masrafHd='<div class="row hd"><div class="grow">KALEM</div><div style="width:88px;text-align:center;">DURUM</div><div style="width:104px;text-align:right;">TL TUTAR</div><div style="width:104px;text-align:right;color:#2ED573;">USD TUTAR</div></div>';
   const masrafRows=D.masraflar.length
     ? D.masraflar.map(e=>'<div class="row tap" data-act="masrafDetay" data-id="'+esc(e.id)+'" style="cursor:pointer;"><div class="grow"><div style="font-weight:600;" class="nowrap">'+esc(e.aciklama)+'</div><div style="font-size:11px;color:var(--muted);" class="nowrap">'+esc(e.tarih||"")+(e.olcu?' · '+esc(e.olcu):'')+(e.giren?' · '+esc(e.giren):'')+'</div></div>'
-        +'<div style="width:92px;text-align:center;">'+pill(e.durum)+'</div>'
-        +'<div style="width:122px;text-align:right;font-weight:700;color:'+(e.pb==="USD"?'#F5A623':'#fff')+';" class="mono">'+(e.pb==="USD"?usd(e.tutarRaw):tl(e.tutarRaw))+'</div></div>').join('')
+        +'<div style="width:88px;text-align:center;">'+pill(e.durum)+'</div>'
+        +'<div style="width:104px;text-align:right;font-weight:700;color:#fff;" class="mono">'+(e.pb==="USD"?dash:tl(e.tutarRaw))+'</div>'
+        +'<div style="width:104px;text-align:right;font-weight:700;color:#2ED573;" class="mono">'+(e.pb==="USD"?usd(e.tutarRaw):dash)+'</div></div>').join('')
     : '<div class="empty">Masraf kaydı yok.</div>';
-  const masrafBox='<div class="sec">'+ic("wallet",13,"#F5A623")+' MASRAFLAR ('+D.masraflar.length+' kalem)</div><div class="box">'+masrafRows
-    +(D.masraflar.length?'<div class="row" style="background:var(--card2);"><div class="grow" style="font-weight:800;">TOPLAM MASRAF</div><div style="width:122px;text-align:right;font-weight:800;" class="mono">'+tl(D.mTL)+'</div></div>'
-      +(D.mUSD?'<div class="row" style="background:var(--card2);"><div class="grow" style="font-weight:800;color:#F5A623;">TOPLAM MASRAF (USD)</div><div style="width:122px;text-align:right;font-weight:800;color:#F5A623;" class="mono">'+usd(D.mUSD)+'</div></div>':'')
-      +'<div class="row"><div class="grow" style="color:var(--muted);">Bunlardan ödenen</div><div style="text-align:right;color:#2ED573;" class="mono">'+tl(D.odTL)+(D.odUSD?' · '+usd(D.odUSD):'')+'</div></div>':'')+'</div>';
+  const masrafBox='<div class="sec">'+ic("wallet",13,"#F5A623")+' MASRAFLAR ('+D.masraflar.length+' kalem)</div><div class="box">'+(D.masraflar.length?masrafHd:'')+masrafRows
+    +(D.masraflar.length?'<div class="row" style="background:var(--card2);"><div class="grow" style="font-weight:800;">TOPLAM MASRAF</div><div style="width:88px;"></div><div style="width:104px;text-align:right;font-weight:800;color:#fff;" class="mono">'+tl(D.mTL)+'</div><div style="width:104px;text-align:right;font-weight:800;color:#2ED573;" class="mono">'+(D.mUSD?usd(D.mUSD):dash)+'</div></div>'
+      +'<div class="row"><div class="grow" style="color:var(--muted);">Bunlardan ödenen</div><div style="width:88px;"></div><div style="width:104px;text-align:right;color:#9db8f0;" class="mono">'+tl(D.odTL)+'</div><div style="width:104px;text-align:right;color:#2ED573;" class="mono">'+(D.odUSD?usd(D.odUSD):dash)+'</div></div>':'')+'</div>';
 
   return sel+head+girisBox+bozBox+masrafBox
    +'<div style="font-size:11px;color:var(--muted);margin-top:14px;line-height:1.5;">'+ic("alert",12,"#F5A623")+' Bu döküm seçili markanın <b>tüm</b> para girişlerini ve masraflarını (durum fark etmeksizin) listeler. "Yazdır / PDF" ile çıktı alabilir veya PDF olarak kaydedebilirsin. Masraf satırına tıklayınca detayını görürsün.</div>';
@@ -433,9 +435,11 @@ function hesapYazdir(){
   const bozBlok=D.boz.length?('<h2>Döviz Bozdurma</h2><table><thead><tr><th>Tarih</th><th class="r">Bozdurulan $</th><th class="r">Kur</th><th class="r">Elde TL</th></tr></thead><tbody>'+bozHTML+'</tbody></table>'):'';
 
   const masrafHTML=D.masraflar.length
-    ? D.masraflar.map(m=>'<tr><td>'+e2(m.tarih||"")+'</td><td>'+e2(m.aciklama)+(m.olcu?' <span class="mut">· '+e2(m.olcu)+'</span>':'')+'</td><td>'+e2(m.giren||"")+'</td><td>'+e2(DL[m.durum]||"")+'</td><td class="r mono">'+(m.pb==="USD"?fUSD(m.tutarRaw):fTL(m.tutarRaw))+'</td></tr>').join('')
-      +'<tr class="tot"><td colspan="4">TOPLAM MASRAF</td><td class="r mono">'+fTL(D.mTL)+(D.mUSD?' + '+fUSD(D.mUSD):'')+'</td></tr>'
-    : '<tr><td colspan="5" class="em">Masraf kaydı yok.</td></tr>';
+    ? D.masraflar.map(m=>'<tr><td>'+e2(m.tarih||"")+'</td><td>'+e2(m.aciklama)+(m.olcu?' <span class="mut">· '+e2(m.olcu)+'</span>':'')+'</td><td>'+e2(m.giren||"")+'</td><td>'+e2(DL[m.durum]||"")+'</td>'
+        +'<td class="r mono">'+(m.pb!=="USD"?fTL(m.tutarRaw):'<span class="dash">—</span>')+'</td>'
+        +'<td class="r mono usd">'+(m.pb==="USD"?fUSD(m.tutarRaw):'<span class="dash">—</span>')+'</td></tr>').join('')
+      +'<tr class="tot"><td colspan="4">TOPLAM MASRAF</td><td class="r mono">'+fTL(D.mTL)+'</td><td class="r mono usd">'+(D.mUSD?fUSD(D.mUSD):'<span class="dash">—</span>')+'</td></tr>'
+    : '<tr><td colspan="6" class="em">Masraf kaydı yok.</td></tr>';
 
   const html='<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>'+e2(k)+' · Hesap Dökümü</title><style>'
     +'*{box-sizing:border-box;font-family:-apple-system,Segoe UI,Arial,sans-serif;}'
@@ -449,6 +453,7 @@ function hesapYazdir(){
     +'th{text-align:left;background:#f3f3f3;padding:7px 9px;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:#666;border-bottom:1px solid #ddd;}'
     +'td{padding:6px 9px;border-bottom:1px solid #eee;vertical-align:top;}'
     +'.r{text-align:right;}.mono{font-variant-numeric:tabular-nums;white-space:nowrap;}.mut{color:#999;font-size:10px;}'
+    +'.usd{color:#1F9D52;}.dash{color:#c4c4c4;}'
     +'tr.tot td{font-weight:800;background:#fafafa;border-top:2px solid #ccc;border-bottom:none;}'
     +'.em{color:#999;text-align:center;padding:14px;}'
     +'.sum{display:flex;gap:12px;margin:14px 0 4px;flex-wrap:wrap;}'
@@ -465,7 +470,7 @@ function hesapYazdir(){
       +'<div class="c"><div class="t">Toplam Masraf</div><div class="v" style="color:#C51515;">'+fTL(D.mTL)+(D.mUSD?' + '+fUSD(D.mUSD):'')+'</div></div></div>'
     +'<h2>Para Girişleri (USD)</h2><table><thead><tr><th>Tarih</th><th>Açıklama</th><th class="r">Tutar</th></tr></thead><tbody>'+girisHTML+'</tbody></table>'
     +bozBlok
-    +'<h2>Masraflar ('+D.masraflar.length+' kalem)</h2><table><thead><tr><th>Tarih</th><th>Kalem</th><th>Giren</th><th>Durum</th><th class="r">Tutar</th></tr></thead><tbody>'+masrafHTML+'</tbody></table>'
+    +'<h2>Masraflar ('+D.masraflar.length+' kalem)</h2><table><thead><tr><th>Tarih</th><th>Kalem</th><th>Giren</th><th>Durum</th><th class="r">TL Tutar</th><th class="r usd">USD Tutar</th></tr></thead><tbody>'+masrafHTML+'</tbody></table>'
     +'<div class="foot">KUTU MASRAFLARI · Yönetici Paneli — '+e2(k)+' hesap dökümü · '+bugun()+'</div>'
     +'</body></html>';
 
