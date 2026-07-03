@@ -732,6 +732,22 @@ function sheetOvl(){
      +'<div class="sec" style="margin:4px 0 8px;">HAREKET GEÇMİŞİ</div><div class="box" style="max-height:280px;overflow:auto;">'+rows+'</div>'
      +'<button class="btnred" style="margin-top:14px;" data-act="malzGirisForM" data-m="'+esc(ad)+'" data-b="'+esc(x.birim||"")+'">'+ic("plus",16,"#fff")+' Bu Malzemeye Hareket</button></div></div>';
   }
+  if(S.sheet==="masrafEdit"){
+    const d=S.sheetData||{};
+    const sekil=(d.sekil==="Elden")?"Elden":"Havale";
+    const kutuOpts=KUTULAR.map(k=>'<option value="'+esc(k)+'"'+(k===d.kutu?' selected':'')+'>'+esc(k)+'</option>').join('');
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Masrafı Düzenle</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+     +'<label class="lbl">Kutu (marka)</label><select id="me_kutu" class="field">'+kutuOpts+'</select>'
+     +'<label class="lbl">Ödeme şekli</label><div class="seg" style="margin-bottom:4px;"><div class="opt2'+(sekil==="Havale"?' on':'')+'" data-act="meSekil" data-v="Havale">Havale</div><div class="opt2'+(sekil==="Elden"?' on':'')+'" data-act="meSekil" data-v="Elden">Elden</div></div>'
+     +'<label class="lbl">Alıcı</label><input id="me_alici" class="field" value="'+esc(d.alici||"")+'">'
+     +(sekil==="Havale"?'<label class="lbl">IBAN / Hesap No</label><input id="me_iban" class="field mono" value="'+esc(d.iban||"")+'">':'')
+     +'<div class="two"><div><label class="lbl">Tutar</label><input id="me_tut" class="field" type="number" inputmode="decimal" value="'+esc(d.tutar||"")+'"></div>'
+     +'<div><label class="lbl">Para birimi</label><select id="me_pb" class="field"><option'+(d.pb!=="USD"?' selected':'')+'>TL</option><option'+(d.pb==="USD"?' selected':'')+'>USD</option></select></div></div>'
+     +'<label class="lbl">Açıklama</label><input id="me_ack" class="field" value="'+esc(d.notu||"")+'">'
+     +'<label class="lbl">Tarih (GG.AA.YYYY)</label><input id="me_tar" class="field mono" value="'+esc(d.tarih||"")+'">'
+     +'<button class="btnred" style="margin-top:16px;" data-act="masrafGuncelleKaydet" data-id="'+esc(d.id)+'" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Güncelle</button>'
+     +'</div></div>';
+  }
   if(S.sheet==="masrafDetay"){
     const e=DATA.filter(x=>x.id===(S.sheetData||{}).id)[0];
     if(!e) return "";
@@ -752,6 +768,7 @@ function sheetOvl(){
      +'<label class="lbl">Açıklama</label><div class="field" style="background:#141414;min-height:44px;">'+esc(e.notu||"—")+'</div>'
      +'<div class="two"><div><label class="lbl">Giren</label><div class="field" style="background:#141414;">'+esc(e.giren||"—")+'</div></div><div><label class="lbl">Tarih</label><div class="field mono" style="background:#141414;">'+esc(e.tarih||"—")+'</div></div></div>'
      +act
+     +'<div class="two" style="margin-top:10px;"><button class="btn b-w" style="flex:1;justify-content:center;" data-act="masrafDuzelt" data-id="'+esc(e.id)+'">✎ Düzenle</button><button class="btn b-no" style="flex:1;justify-content:center;" data-act="masrafSil" data-id="'+esc(e.id)+'">'+ic("x",14,"#ff8a8a")+' Sil</button></div>'
      +'</div></div>';
   }
   return "";
@@ -759,6 +776,7 @@ function sheetOvl(){
 function bzHesap(){const u=parseFloat(($("bz_usd")||{}).value||"0")||0;const k=parseFloat(($("bz_kur")||{}).value||"0")||0;const o=$("bz_elde");if(o)o.textContent="₺"+Math.round(u*k).toLocaleString("tr-TR");}
 function tsStok(){const k=($("ts_kutu")||{}).value;const row=(KUTUSTOK||[]).filter(x=>x.kutu===k)[0];const o=$("ts_stok");if(o)o.textContent="Stokta: "+((row?row.stokta:0)||0).toLocaleString("tr-TR")+" adet";}
 function tsTutar(){const a=parseFloat(($("ts_adet")||{}).value||"0")||0;const f=parseFloat(($("ts_fiyat")||{}).value||"0")||0;const o=$("ts_tutar");if(o)o.textContent=usd(a*f);}
+function meOku(){const d=S.sheetData;if(!d)return;const g=id=>{const x=$(id);return x?x.value:null;};if(g("me_kutu")!=null)d.kutu=g("me_kutu");if(g("me_alici")!=null)d.alici=g("me_alici").trim();if(g("me_iban")!=null)d.iban=g("me_iban").trim();if(g("me_tut")!=null)d.tutar=g("me_tut");if(g("me_pb")!=null)d.pb=g("me_pb");if(g("me_ack")!=null)d.notu=g("me_ack");if(g("me_tar")!=null)d.tarih=g("me_tar").trim();}
 
 /* ============ EYLEMLER ============ */
 async function doLogin(){
@@ -793,6 +811,10 @@ document.addEventListener("click",async e=>{
   if(a==="logout"){try{localStorage.removeItem("km_yonetici");localStorage.removeItem("km_cache");}catch(_){}staleGoster(false);S.authed=false;S.kod="";S.sifre="";renderLogin();return;}
   if(a==="reload"){reloadData();return;}
   if(a==="masrafDetay"){S.sheetData={id:el.getAttribute("data-id")};S.sheet="masrafDetay";render();return;}
+  if(a==="masrafDuzelt"){const id=el.getAttribute("data-id");const m=DATA.filter(x=>x.id===id)[0];if(!m)return;S.sheet="masrafEdit";S.sheetData={id:id,kutu:m.kutu,sekil:(String(m.odemeSekli||"").toLowerCase()==="havale"?"Havale":"Elden"),alici:m.alici||"",iban:m.iban||"",tutar:m.tutarRaw,pb:m.pb||"TL",notu:m.notu||"",tarih:m.tarih||""};render();return;}
+  if(a==="meSekil"){if(S.sheetData){meOku();S.sheetData.sekil=el.getAttribute("data-v");}render();return;}
+  if(a==="masrafGuncelleKaydet"){meOku();const d=S.sheetData||{};const tut=parseFloat(String(d.tutar||"").replace(",","."))||0;if(!(tut>0)){toast("Geçerli tutar girin");return;}if(!d.alici){toast("Alıcı gerekli");return;}if(d.sekil!=="Elden"&&!d.iban){toast("Havale için IBAN gerekli");return;}if(S.busy)return;S.busy=true;render();try{const j=await api("masrafGuncelle",{data:{id:d.id,kutu:d.kutu,odemeSekli:(d.sekil==="Elden"?"Elden":"Havale"),alici:d.alici,iban:(d.sekil==="Elden"?"":d.iban),tutar:tut,pb:d.pb||"TL",aciklama:d.notu||"",tarih:d.tarih||""}});if(j&&j.ok){toast("Masraf güncellendi ✓");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok){applyData(r);dataKaydet(r);}}else toast((j&&j.error)||"İşlem başarısız");}catch(e2){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="masrafSil"){const id=el.getAttribute("data-id");if(!confirm("Bu masraf kaydı KALICI olarak silinsin mi?"))return;if(S.busy)return;S.busy=true;render();try{const j=await api("masrafSil",{data:{id:id}});if(j&&j.ok){toast("Masraf silindi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok){applyData(r);dataKaydet(r);}}else toast((j&&j.error)||"İşlem başarısız");}catch(e2){toast("Bağlantı hatası");}S.busy=false;render();return;}
   if(a==="ibanKopyala"){const v=el.getAttribute("data-v")||"";try{await navigator.clipboard.writeText(v);toast("IBAN kopyalandı");}catch(_){toast("Kopyalanamadı: "+v);}return;}
   if(a==="selkutu"){S.selKutu=el.getAttribute("data-k");render();return;}
   if(a==="kutuTog"){const k=el.getAttribute("data-k");S.openKutu=S.openKutu===k?null:k;render();return;}
