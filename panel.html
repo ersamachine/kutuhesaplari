@@ -98,6 +98,12 @@ let DATA=[];
 
 const S={authed:false,kod:"",sifre:"",tab:"ozet",f:"all",q:"",selKutu:"Rolex",openKutu:"Rolex",kasaKutu:"Rolex",malzKutu:"Rolex",hesapKutu:"Rolex",sheet:null,sheetData:null,busy:false,loading:false,err:""};
 try{const a=JSON.parse(localStorage.getItem("km_yonetici")||"null");if(a&&a.kod){S.kod=a.kod;S.sifre=a.sifre;S.authed=true;}}catch(e){}
+/* ===== V9 ANINDA AÇILIŞ — son görünüm cihazda saklanır, yenilemede beklemeden gelir ===== */
+function dataKaydet(j){try{localStorage.setItem("km_cache",JSON.stringify(j));}catch(e){try{localStorage.removeItem("km_cache");}catch(_){}}}
+function dataOku(){try{const s=localStorage.getItem("km_cache");return s?JSON.parse(s):null;}catch(e){return null;}}
+function staleGoster(v){var el=document.getElementById("staleBar");
+  if(v){if(!el){el=document.createElement("div");el.id="staleBar";el.style.cssText="position:fixed;top:0;left:0;right:0;z-index:9999;background:#FFF3E0;color:#B26A00;font:600 11px 'Public Sans',system-ui,sans-serif;text-align:center;padding:4px 8px;box-shadow:0 1px 4px rgba(0,0,0,.08);";el.textContent="Kayıtlı görünüm gösteriliyor — güncel veriler arka planda yükleniyor…";document.body.appendChild(el);}}
+  else if(el){el.remove();}}
 
 async function api(action,extra){
   const body=Object.assign({kod:S.kod,sifre:S.sifre,action},extra||{});
@@ -129,20 +135,20 @@ function applyData(j){
   });
 }
 async function load(silent){
-  if(!window.API_URL||String(API_URL).indexOf("YAPISTIR")>=0){S.err="config.js içine Apps Script adresini yazın.";S.authed=false;renderLogin();return;}
+  if(!window.API_URL||String(API_URL).indexOf("YAPISTIR")>=0){S.err="config.js içine Apps Script adresini yazın.";S.authed=false;staleGoster(false);renderLogin();return;}
   if(!silent){S.loading=true;render();}
   try{const j=await api("data");
     if(checkVer(j))return;
-    if(j.ok===false){S.authed=false;S.err=j.error||"";S.loading=false;renderLogin();return;}
-    applyData(j);S.authed=true;S.loading=false;render();
-  }catch(e){S.loading=false;if(!silent){S.err="Bağlantı kurulamadı.";S.authed=false;renderLogin();}}
+    if(j.ok===false){S.authed=false;S.err=j.error||"";S.loading=false;staleGoster(false);try{localStorage.removeItem("km_cache");}catch(_){}renderLogin();return;}
+    applyData(j);dataKaydet(j);S.authed=true;S.loading=false;staleGoster(false);render();
+  }catch(e){S.loading=false;staleGoster(false);if(!silent){S.err="Bağlantı kurulamadı.";S.authed=false;renderLogin();}}
 }
 async function reloadData(){
   if(S.busy)return;S.busy=true;
   const b=document.querySelector('[data-act="reload"]');if(b)b.classList.add("spin");
   try{const j=await api("data");
     if(checkVer(j))return;
-    if(j&&j.ok!==false){applyData(j);render();toast("Güncellendi");}
+    if(j&&j.ok!==false){applyData(j);dataKaydet(j);render();toast("Güncellendi");}
     else{toast(j&&j.error?j.error:"Yenilenemedi");}
   }catch(e){toast("Bağlantı hatası");}
   S.busy=false;
@@ -764,7 +770,7 @@ async function doLogin(){
     if(j.ok===false){S.busy=false;S.kod="";S.sifre="";S.err=j.error||"Giriş başarısız.";renderLogin();return;}
     if(j.rol!=="yonetici"){S.busy=false;S.kod="";S.sifre="";S.err="Bu panele yalnız yönetici girebilir.";renderLogin();return;}
     try{localStorage.setItem("km_yonetici",JSON.stringify({kod:k,sifre:s}));}catch(_){}
-    applyData(j);S.authed=true;S.busy=false;S.tab="ozet";render();
+    applyData(j);dataKaydet(j);S.authed=true;S.busy=false;S.tab="ozet";render();
   }catch(e){S.busy=false;S.err="Bağlantı kurulamadı.";renderLogin();}
 }
 async function setStatus(id,d){
@@ -772,7 +778,7 @@ async function setStatus(id,d){
   try{const j=await api("durum",{id:id,durum:DSRV[d]||d});
     if(j.ok===false){toast(j.error||"İşlem başarısız");S.busy=false;return;}
     toast(DLAB[d]+(d==="odendi"?" olarak işaretlendi":""));
-    const r=await api("data");if(r&&r.ok)applyData(r);
+    const r=await api("data");if(r&&r.ok){applyData(r);dataKaydet(r);}
     if(S.sheet==="masrafDetay"){S.sheet=null;S.sheetData=null;}
   }catch(e){toast("Bağlantı hatası");}
   S.busy=false;render();
@@ -784,7 +790,7 @@ document.addEventListener("click",async e=>{
   const el=e.target.closest("[data-act]");if(!el)return;
   const a=el.getAttribute("data-act");
   if(a==="login"){doLogin();return;}
-  if(a==="logout"){try{localStorage.removeItem("km_yonetici");}catch(_){}S.authed=false;S.kod="";S.sifre="";renderLogin();return;}
+  if(a==="logout"){try{localStorage.removeItem("km_yonetici");localStorage.removeItem("km_cache");}catch(_){}staleGoster(false);S.authed=false;S.kod="";S.sifre="";renderLogin();return;}
   if(a==="reload"){reloadData();return;}
   if(a==="masrafDetay"){S.sheetData={id:el.getAttribute("data-id")};S.sheet="masrafDetay";render();return;}
   if(a==="ibanKopyala"){const v=el.getAttribute("data-v")||"";try{await navigator.clipboard.writeText(v);toast("IBAN kopyalandı");}catch(_){toast("Kopyalanamadı: "+v);}return;}
@@ -957,6 +963,7 @@ document.addEventListener("change",e=>{
 document.addEventListener("input",e=>{
   const s=e.target.closest('[data-search]');if(s){S.q=s.value;const v=document.querySelector(".view");if(v){v.innerHTML=masrafView();const inp=v.querySelector('[data-search]');if(inp){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}}}
 });
-if(S.authed){load();}else{renderLogin();}
+/* V9: kayıtlı giriş + kayıtlı görünüm varsa ANINDA render, güncel veri arka planda */
+if(S.authed){const c=dataOku();if(c){applyData(c);render();staleGoster(true);load(true);}else{load();}}else{renderLogin();}
 
 </script></body></html>
