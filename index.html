@@ -151,6 +151,10 @@ const APP_VER=Number(new URLSearchParams(location.search).get("v"))||0;
 function checkVer(j){if(j&&j.surum&&j.surum>APP_VER){location.replace(location.pathname+"?v="+j.surum);return true;}return false;}
 const DKEY={"Bekliyor":"bekliyor","Onaylandı":"onaylandi","Onaylandi":"onaylandi","Ödendi":"odendi","Odendi":"odendi","Reddedildi":"reddedildi"};
 function normMasraf(m){return {id:m.id,by:m.giren,box:m.kutu,name:m.alici,method:(String(m.odemeSekli).toLowerCase()==="havale"?"havale":"elden"),iban:m.iban,amount:Number(m.tutar)||0,cur:m.pb||"TL",desc:m.aciklama,status:DKEY[m.durum]||"bekliyor",date:m.tarih,appr:m.onaylayan,reason:m.redSebep};}
+/* Anında açılış önbelleği — son başarılı veri cihazda tutulur, açılışta hemen gösterilir */
+function kmCacheYaz(j){ try{ localStorage.setItem("km_cache", JSON.stringify(j)); }catch(e){} }
+function kmCacheOku(){ try{ return JSON.parse(localStorage.getItem("km_cache")||"null"); }catch(e){ return null; } }
+function kmCacheUygula(j){ RATE=Number(j.kur)||RATE; if(j.kutular&&j.kutular.length)KUTULAR=j.kutular.map(k2=>k2.marka); S.me={ad:j.ad,rol:j.rol}; S.pg=j.portalGiris||null; S.data={masraflar:(j.masraflar||[]).map(normMasraf)};kmCacheYaz(j); S.loading=false; }
 async function load(silent){
  if(!window.API_URL||String(API_URL).indexOf("YAPISTIR")>=0){S.loginErr="config.js içine Apps Script adresini yazın.";S.authed=false;render();return;}
  if(!silent){S.loading=true;render();}
@@ -158,7 +162,7 @@ async function load(silent){
   if(checkVer(j))return;
   if(j.ok===false){S.loginErr=j.error||"Giriş başarısız.";S.authed=false;S.loading=false;render();return;}
   RATE=Number(j.kur)||RATE; if(j.kutular&&j.kutular.length)KUTULAR=j.kutular.map(k=>k.marka);
-  S.me={ad:j.ad,rol:j.rol};S.pg=j.portalGiris||null; S.data={masraflar:(j.masraflar||[]).map(normMasraf)};
+  S.me={ad:j.ad,rol:j.rol};S.pg=j.portalGiris||null; S.data={masraflar:(j.masraflar||[]).map(normMasraf)};kmCacheYaz(j);
   S.authed=true;S.loginErr="";S.loading=false;render();
  }catch(e){S.loginErr="Bağlantı kurulamadı.";S.loading=false;render();}
 }
@@ -337,10 +341,10 @@ $("app").addEventListener("click",async function(e){
      if(j.ok===false){S.loginErr=j.error||"Giriş başarısız.";S.kod="";S.sifre="";render();return;}
      try{localStorage.setItem("km_personel",JSON.stringify({kod:k,sifre:p}));}catch(_){}
      RATE=Number(j.kur)||RATE; if(j.kutular&&j.kutular.length)KUTULAR=j.kutular.map(x=>x.marka);
-     S.me={ad:j.ad,rol:j.rol};S.pg=j.portalGiris||null;S.data={masraflar:(j.masraflar||[]).map(normMasraf)};S.authed=true;S.loginErr="";S.tab="home";render();
+     S.me={ad:j.ad,rol:j.rol};S.pg=j.portalGiris||null;S.data={masraflar:(j.masraflar||[]).map(normMasraf)};kmCacheYaz(j);S.authed=true;S.loginErr="";S.tab="home";render();
    }catch(_){S.loginErr="Bağlantı kurulamadı.";render();}
    return;}
- else if(a==="logout"){try{localStorage.removeItem("km_personel");}catch(_){}S.authed=false;S.me=null;S.kod="";S.sifre="";S.data=null;render();}
+ else if(a==="logout"){try{localStorage.removeItem("km_personel");localStorage.removeItem("km_cache");}catch(_){}S.authed=false;S.me=null;S.kod="";S.sifre="";S.data=null;render();}
  else if(a==="tab"){S.tab=v;S.sheet=null;render();}
  else if(a==="tabf"){S.tab="liste";S.f=v;render();}
  else if(a==="setf"){S.f=v;render();}
@@ -376,6 +380,6 @@ async function submitForm(btn){
 /* clock */
 function clk(){const d=new Date();const el=$("clock");if(el)el.textContent=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}
 clk();setInterval(clk,30000);
-if(S.authed){load();}else{render();}
+if(S.authed){ var _c=kmCacheOku(); if(_c){ kmCacheUygula(_c); render(); } load(!!_c); } else { render(); }
 </script>
 </body></html>
