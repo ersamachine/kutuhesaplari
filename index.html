@@ -248,7 +248,7 @@ function header(ad,rol){
  return '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">'
   +'<div style="display:flex;align-items:center;gap:11px;min-width:0;"><div class="circ" style="width:42px;height:42px;background:var(--red);color:#fff;font-weight:800;font-size:14px;">'+esc(initials(ad).toUpperCase())+'</div>'
   +'<div style="min-width:0;"><div style="font-weight:700;font-size:16px;color:#fff;">Merhaba '+esc(ad)+'</div><div style="font-size:12px;color:var(--muted);">Bugün ne masrafların var?</div></div></div>'
-  +'<div class="circ tap" data-act="logout" style="background:#202020;">'+ic("logout",17,"#EDEDED")+'</div></div>';
+  +'<div style="display:flex;gap:8px;"><div class="circ tap" data-act="apps" style="background:#202020;" title="Uygulamalar">'+ic("box",17,"#9db8f0")+'</div><div class="circ tap" data-act="logout" style="background:#202020;">'+ic("logout",17,"#EDEDED")+'</div></div></div>';
 }
 function mini(lab,val,col){return '<div style="flex:1;background:#1b1b1b;border-radius:13px;padding:11px;text-align:center;"><div class="bignum" style="font-size:22px;color:'+col+';">'+val+'</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">'+lab+'</div></div>';}
 function bigstat(lab,val,col,icn){return '<div class="c" style="flex:1;padding:13px;text-align:center;"><div style="margin-bottom:6px;">'+ic(icn,18,col)+'</div><div class="bignum" style="font-size:21px;color:#fff;">'+val+'</div><div style="font-size:10px;color:var(--muted);">'+lab+'</div></div>';}
@@ -258,6 +258,18 @@ function brd(h){const c=hx(h);return'rgba('+c[0]+','+c[1]+','+c[2]+',.3)';}
 
 /* ============ YENİ MASRAF FORMU (sheet) ============ */
 function boxLabel(){return S.box?'<span class="selval">'+ic("box",15,"#C51515")+' '+esc(S.box)+'</span>':'<span class="selph">Kutu seçin</span>';}
+/* Uygulamalar arası geçiş — portaldaki bölüm değiştirin aynısı */
+function appsSheet(){
+ const it=(url,icn,ad,sub,cur)=>cur
+  ?'<div style="display:flex;align-items:center;gap:12px;background:#1b1b1b;border:1px solid #C51515;border-radius:14px;padding:14px;margin-bottom:10px;"><div class="circ" style="width:40px;height:40px;background:#C51515;">'+ic(icn,18,"#fff")+'</div><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#fff;font-size:14px;">'+ad+'</div><div style="font-size:11px;color:#8A8A8A;">'+sub+'</div></div><span class="chip chip-r">BU UYGULAMA</span></div>'
+  :'<div class="tap" data-act="goApp" data-v="'+url+'" style="display:flex;align-items:center;gap:12px;background:#1b1b1b;border:1px solid #2c2c2c;border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;"><div class="circ" style="width:40px;height:40px;background:#2a2a2a;">'+ic(icn,18,"#9db8f0")+'</div><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#fff;font-size:14px;">'+ad+'</div><div style="font-size:11px;color:#8A8A8A;">'+sub+'</div></div>'+ic("cr",16,"#5a5a5a")+'</div>';
+ return '<div class="ovl"><div class="sheet">'
+  +'<div class="sheethead"><div class="sheettitle">Uygulamalar</div><div class="xbtn" data-act="close">'+ic("x",16,"#ccc")+'</div></div>'
+  +it("/portal/","home","ERSA Portal","Müşteri portalı · bölümler")
+  +it("","wallet","Kutu Masrafları","Masraf girişi · onay takibi",true)
+  +it("/ersakutu/","box","ERSA Kutu","Şube uygulaması · cari · kasa")
+  +'</div></div>';
+}
 function formSheet(){
  const hav=S.method==="havale";
  return '<div class="ovl"><div class="sheet">'
@@ -299,7 +311,7 @@ function render(){
  let v=S.tab==="liste"?listView():homePersonel();
  $("scr").innerHTML=v;
  $("navhost").innerHTML=navBar();
- $("sheethost").innerHTML=S.sheet==="yeni"?formSheet():"";
+ $("sheethost").innerHTML=S.sheet==="yeni"?formSheet():(S.sheet==="apps"?appsSheet():"");
  $("scr").scrollTop=0;
 }
 function navBar(){
@@ -334,6 +346,8 @@ $("app").addEventListener("click",async function(e){
  else if(a==="setf"){S.f=v;render();}
  else if(a==="open"){S.sheet=v;S.method="havale";S.cur="TL";S.box="";S.picker=null;render();}
  else if(a==="close"){S.sheet=null;S.picker=null;render();}
+ else if(a==="apps"){S.sheet="apps";render();}
+ else if(a==="goApp"){location.href=v;}
  else if(a==="boxpick"){openPicker();}
  else if(a==="pickclose"){closePicker();}
  else if(a==="box"){selectBox(v);}
