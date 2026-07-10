@@ -344,7 +344,7 @@ function kasaView(){
    +'<div class="box">'+tlgirisRows+'</div>';
 
   const bl=(K.bozList||[]);
-  const bozRows=bl.length?bl.slice().reverse().map(b=>'<div class="row"><div class="grow mono">'+esc(b.tarih||"")+'</div><div style="width:110px;text-align:right;" class="mono">'+usd(b.usd)+'</div><div style="width:80px;text-align:right;color:#F5A623;" class="mono">'+Number(b.kur).toLocaleString("tr-TR",{maximumFractionDigits:2})+'</div><div style="width:130px;text-align:right;font-weight:700;" class="mono">'+tl(b.eldeTL)+'</div></div>').join(''):'<div class="empty">Henüz bozdurma kaydı yok.</div>';
+  const bozRows=bl.length?bl.slice().reverse().map(b=>'<div class="row tap" data-act="bozDuzelt" data-row="'+b.row+'" style="cursor:pointer;" title="Düzenle / Sil"><div class="grow mono">'+esc(b.tarih||"")+' <span style="font-size:10px;color:var(--muted);">· düzenle</span></div><div style="width:110px;text-align:right;" class="mono">'+usd(b.usd)+'</div><div style="width:80px;text-align:right;color:#F5A623;" class="mono">'+Number(b.kur).toLocaleString("tr-TR",{maximumFractionDigits:2})+'</div><div style="width:130px;text-align:right;font-weight:700;" class="mono">'+tl(b.eldeTL)+'</div></div>').join(''):'<div class="empty">Henüz bozdurma kaydı yok.</div>';
   const boz='<div class="sec" style="display:flex;justify-content:space-between;align-items:center;">'
    +'<span>'+ic("coins",13,"#F5A623")+' DÖVİZ BOZDURMA</span>'
    +'<button class="btn b-w" data-act="bozdurAc">'+ic("plus",13,"#9db8f0")+' Döviz Bozdur</button></div>'
@@ -618,13 +618,17 @@ function malzemeView(){
 function bugun(){const d=new Date(),p=n=>String(n).padStart(2,"0");return p(d.getDate())+"."+p(d.getMonth()+1)+"."+d.getFullYear();}
 function sheetOvl(){
   if(S.sheet==="bozdur"){
-    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">Döviz Bozdur · '+esc(S.kasaKutu)+'</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
+    const ed=S.sheetData&&S.sheetData.row;
+    const eldeInit=(ed&&S.sheetData.usd&&S.sheetData.kur)?("₺"+Math.round(Number(S.sheetData.usd)*Number(S.sheetData.kur)).toLocaleString("tr-TR")):"₺0";
+    return '<div class="ovl"><div class="modal"><div class="mh"><div class="t">'+(ed?"Bozdurma Düzelt":"Döviz Bozdur")+' · '+esc(S.kasaKutu)+'</div><div style="cursor:pointer;" data-act="sheetclose">'+ic("x",20,"#999")+'</div></div>'
      +'<div style="font-size:11.5px;color:var(--muted);margin-bottom:12px;">USD bozdurulur, karşılığı TL olarak <b>'+esc(S.kasaKutu)+'</b> kasasına eklenir.</div>'
-     +'<label class="lbl">Tarih</label><input id="bz_tar" class="field" value="'+bugun()+'">'
-     +'<label class="lbl">Bozdurulan USD</label><input id="bz_usd" class="field" type="number" inputmode="decimal" placeholder="0" oninput="bzHesap()">'
-     +'<label class="lbl">Kur (1 USD = ? ₺)</label><input id="bz_kur" class="field" type="number" inputmode="decimal" placeholder="0" oninput="bzHesap()">'
-     +'<div class="kpi" style="margin-top:6px;"><div class="t">ELDE EDİLECEK TL</div><div class="v" id="bz_elde" style="color:#2ED573;">₺0</div></div>'
-     +'<button class="btnred" style="margin-top:16px;" data-act="bozdurKaydet" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+' Bozdurmayı Kaydet</button></div></div>';
+     +'<label class="lbl">Tarih</label><input id="bz_tar" class="field" value="'+esc((S.sheetData&&S.sheetData.tarih)||bugun())+'">'
+     +'<label class="lbl">Bozdurulan USD</label><input id="bz_usd" class="field" type="number" inputmode="decimal" placeholder="0" value="'+((S.sheetData&&S.sheetData.usd)||"")+'" oninput="bzHesap()">'
+     +'<label class="lbl">Kur (1 USD = ? ₺)</label><input id="bz_kur" class="field" type="number" inputmode="decimal" placeholder="0" value="'+((S.sheetData&&S.sheetData.kur)||"")+'" oninput="bzHesap()">'
+     +'<div class="kpi" style="margin-top:6px;"><div class="t">ELDE EDİLECEK TL</div><div class="v" id="bz_elde" style="color:#2ED573;">'+eldeInit+'</div></div>'
+     +'<button class="btnred" style="margin-top:16px;" data-act="'+(ed?"bozGuncelle":"bozdurKaydet")+'" '+(S.busy?'disabled':'')+'>'+ic("check",16,"#fff")+(ed?" Güncelle":" Bozdurmayı Kaydet")+'</button>'
+     +(ed?'<button class="btn b-no" style="width:100%;justify-content:center;margin-top:9px;" data-act="bozSil" data-row="'+S.sheetData.row+'">'+ic("x",14,"#ff8a8a")+' Bu Bozdurmayı Sil</button>':'')
+     +'</div></div>';
   }
   if(S.sheet==="dolar"){
     const ed=S.sheetData&&S.sheetData.row;
@@ -859,7 +863,8 @@ document.addEventListener("click",async e=>{
   if(a==="hesapYazdir"){hesapYazdir();return;}
   if(a==="masrafGirAc"){const dk=el.getAttribute("data-k");S.sheetData=dk?{kutu:dk}:null;S.sheet="masrafGir";render();return;}
   if(a==="onay"){setStatus(el.getAttribute("data-id"),el.getAttribute("data-d"));return;}
-  if(a==="bozdurAc"){S.sheet="bozdur";render();return;}
+  if(a==="bozdurAc"){S.sheetData=null;S.sheet="bozdur";render();return;}
+  if(a==="bozDuzelt"){const r=+el.getAttribute("data-row");const b=(((KASA[S.kasaKutu]||{}).bozList)||[]).filter(x=>x.row===r)[0];if(b){S.sheetData={row:r,tarih:b.tarih,usd:b.usd,kur:b.kur};S.sheet="bozdur";render();}return;}
   if(a==="dolarAc"){S.sheetData=null;S.sheet="dolar";render();return;}
   if(a==="dolarDuzelt"){const r=+el.getAttribute("data-row");const g=(((KASA[S.kasaKutu]||{}).girisList)||[]).filter(x=>x.row===r)[0];if(g){S.sheetData={row:r,tarih:g.tarih,usd:g.usd,aciklama:g.aciklama};S.sheet="dolar";render();}return;}
   if(a==="tlAc"){S.sheetData=null;S.sheet="tlgiris";render();return;}
@@ -883,6 +888,20 @@ document.addEventListener("click",async e=>{
     try{const j=await api("bozdur",{data:{tarih:tar,usd:usdv,kur:kur,kutu:S.kasaKutu}});
       if(j.ok===false){toast(j.error||"Kaydedilemedi");S.busy=false;return;}
       toast("Bozduruldu · "+S.kasaKutu+" kasasına eklendi");S.sheet=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="bozGuncelle"){
+    const usdv=parseFloat(($("bz_usd").value||"").replace(",","."))||0, kur=parseFloat(($("bz_kur").value||"").replace(",","."))||0, tar=$("bz_tar").value;
+    if(!(usdv>0)){toast("USD tutarı girin");return;} if(!(kur>0)){toast("Kuru girin");return;}
+    if(S.busy)return;S.busy=true;
+    try{const j=await api("bozdurGuncelle",{data:{row:S.sheetData.row,tarih:tar,usd:usdv,kur:kur,kutu:S.kasaKutu}});
+      if(j.ok===false){toast(j.error||"Güncellenemedi");S.busy=false;return;}
+      toast("Bozdurma güncellendi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
+    }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
+  if(a==="bozSil"){
+    if(!confirm("Bu bozdurma kaydı silinsin mi? (Elde edilen TL kasadan düşülecek)"))return; if(S.busy)return;S.busy=true;
+    try{const j=await api("bozdurSil",{data:{row:+el.getAttribute("data-row"),kutu:S.kasaKutu}});
+      if(j.ok===false){toast(j.error||"Silinemedi");S.busy=false;return;}
+      toast("Bozdurma silindi");S.sheet=null;S.sheetData=null;const r=await api("data");if(r&&r.ok)applyData(r);
     }catch(_){toast("Bağlantı hatası");}S.busy=false;render();return;}
   if(a==="dolarKaydet"){
     const usdv=parseFloat(($("dg_usd").value||"").replace(",","."))||0, ack=$("dg_ack").value, tar=$("dg_tar").value;
