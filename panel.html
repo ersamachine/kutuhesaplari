@@ -378,10 +378,11 @@ function hesapVeri(k){
   const giris=(K.girisList||[]).slice();
   const tlgiris=(K.tlGirisList||[]).slice();
   const boz=(K.bozList||[]).slice();
-  const mTL=masraflar.reduce((a,e)=>a+(e.tlT||0),0);
-  const mUSD=masraflar.reduce((a,e)=>a+(e.usdT||0),0);
+  const gecerli=masraflar.filter(e=>e.durum!=="reddedildi");   // Y25: reddedilenler toplama girmez
+  const mTL=gecerli.reduce((a,e)=>a+(e.tlT||0),0);
+  const mUSD=gecerli.reduce((a,e)=>a+(e.pb==="USD"?(e.tutarRaw||0):0),0);   // Y25: gerçek USD masraf (TL çevrilip eklenmez)
   const odTL=masraflar.filter(e=>e.durum==="odendi").reduce((a,e)=>a+(e.tlT||0),0);
-  const odUSD=masraflar.filter(e=>e.durum==="odendi").reduce((a,e)=>a+(e.usdT||0),0);
+  const odUSD=masraflar.filter(e=>e.durum==="odendi").reduce((a,e)=>a+(e.pb==="USD"?(e.tutarRaw||0):0),0);   // Y25: gerçek USD
   const gUSD=giris.reduce((a,g)=>a+(g.usd||0),0);
   const gTL=tlgiris.reduce((a,g)=>a+(g.tl||0),0);
   const bzUSD=boz.reduce((a,b)=>a+(b.usd||0),0), bzTL=boz.reduce((a,b)=>a+(b.eldeTL||0),0);
