@@ -126,11 +126,13 @@ function applyData(j){
   if(KUTULAR.indexOf(S.hesapKutu)<0)S.hesapKutu=KUTULAR[0]||"Rolex";
   DATA=(j.masraflar||[]).map(m=>{
     const pb=m.pb||"TL", t=Number(m.tutar)||0;
-    const tlT=pb==="TL"?t:0, usdT=pb==="USD"?t:(RATE?t/RATE:0);
+    const tlT=pb==="TL"?t:0, usdT=pb==="USD"?t:0;   // Y27: usdT artık sadece gerçek USD kalemi — TL'nin çevrilmiş karşılığı eklenmez
     const ad=URETIM[m.kutu]||0;
+    const ort=(KASA[m.kutu]&&KASA[m.kutu].ortKur)||0;   // Y29: ürün maliyeti için o kutunun kendi ağırlıklı ort. bozdurma kuru
+    const usdEq=pb==="USD"?t:(ort?t/ort:0);   // Y29: TL kalemin gerçek kurla dolar karşılığı — maliyet ekranları için
     return {id:m.id,kutu:m.kutu,aciklama:m.alici||m.aciklama,olcu:m.aciklama&&m.alici?m.aciklama:"",giren:m.giren,
-            alici:m.alici||"",notu:m.aciklama||"",pb:pb,tutarRaw:t,
-            tlT,usdT,kbtl:ad?tlT/ad:0,kbusd:ad?usdT/ad:0,durum:DKEY[m.durum]||"bekliyor",tarih:m.tarih,
+            alici:m.alici||"",notu:m.aciklama||"",pb:pb,tutarRaw:t,ortKur:ort,
+            tlT,usdT,usdEq,kbtl:ad?tlT/ad:0,kbusd:ad?usdT/ad:0,kbUsdEq:ad?usdEq/ad:0,durum:DKEY[m.durum]||"bekliyor",tarih:m.tarih,
             odemeSekli:m.odemeSekli,iban:m.iban};
   });
 }
@@ -211,12 +213,14 @@ function viewFor(){
 function ozetView(){
   const k=S.selKutu;
   const rows=DATA.filter(e=>e.kutu===k);
-  const TOPTL=sumBox(k,"all","tlT"), TOPUSD=sumBox(k,"all","usdT");
+  const gecerliRows=rows.filter(e=>e.durum!=="reddedildi");   // Y27: reddedilenler toplam maliyete girmez
+  const TOPTL=gecerliRows.reduce((a,e)=>a+(e.tlT||0),0);
+  const TOPUSDEQ=gecerliRows.reduce((a,e)=>a+(e.usdEq||0),0);   // Y29: ürün maliyeti — TL kalemler o kutunun gerçek ort. kuruyla dolara çevrilip toplanır
+  const ortK=(KASA[k]&&KASA[k].ortKur)||0;
   const adet=URETIM[k]||0;
   const bekTL=sumBox(k,"bekliyor","tlT"),bekUSD=sumBox(k,"bekliyor","usdT");
   const onTL=sumBox(k,"onaylandi","tlT"),onUSD=sumBox(k,"onaylandi","usdT");
-  const kbtl=adet?"₺"+(TOPTL/adet).toLocaleString("tr-TR",{maximumFractionDigits:2}):"—";
-  const kbusd=adet?"$"+(TOPUSD/adet).toLocaleString("tr-TR",{maximumFractionDigits:2}):"";
+  const kbusdeq=adet?"$"+(TOPUSDEQ/adet).toLocaleString("tr-TR",{maximumFractionDigits:2}):"—";
 
   const sel='<div class="sec" style="margin-top:2px;">'+ic("box",13,"#8A8A8A")+' KUTU SEÇ</div>'
    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">'+KUTULAR.map(b=>{
@@ -229,8 +233,8 @@ function ozetView(){
   }
 
   const kpis='<div class="kpis">'
-   +kpi("TOPLAM MALİYET",tl(TOPTL),usd(TOPUSD)+" · brüt","wallet","#fff")
-   +kpi("KUTU BAŞI MALİYET",kbtl,(adet?kbusd+" · "+adet.toLocaleString("tr-TR")+" adet":"üretim adedi girilmemiş"),"box","#5B8DEF")
+   +kpi("TOPLAM MALİYET",usd(TOPUSDEQ),tl(TOPTL)+(ortK?" · kur "+ortK.toLocaleString("tr-TR",{maximumFractionDigits:2})+" ile":""),"wallet","#2ED573")
+   +kpi("KUTU BAŞI MALİYET",kbusdeq,(adet?adet.toLocaleString("tr-TR")+" adet":"üretim adedi girilmemiş"),"box","#2ED573")
    +kpi("BEKLEYEN ONAY",cntBox(k,"bekliyor"),tl(bekTL)+(bekUSD?" · "+usd(bekUSD):"")+" bekliyor","clock","#F5A623",true)
    +kpi("ÖDENECEK (ONAYLI)",tl(onTL),usd(onUSD)+" · "+cntBox(k,"onaylandi")+" satır","check","#9B7BFF")
    +'</div>';
@@ -294,18 +298,27 @@ function masrafRow(e){
 function kutuView(){
   return KUTULAR.map(k=>{
     const rows=DATA.filter(e=>e.kutu===k);
-    const tlx=rows.reduce((a,e)=>a+(e.tlT||0),0), usdx=rows.reduce((a,e)=>a+(e.usdT||0),0);
+    const gecerli=rows.filter(e=>e.durum!=="reddedildi");   // Y27: reddedilenler toplama girmez
+    const tlx=gecerli.reduce((a,e)=>a+(e.tlT||0),0), usdEqx=gecerli.reduce((a,e)=>a+(e.usdEq||0),0);   // Y29: ürün maliyeti — $ birincil
+    const ortK=(KASA[k]&&KASA[k].ortKur)||0;
     const open=S.openKutu===k;
     const head='<div class="row tap'+(open?' rowopen':'')+'" data-act="kutuTog" data-k="'+esc(k)+'" style="cursor:pointer;background:var(--card2);">'
       +'<i class="ic" style="transition:transform .15s;transform:rotate('+(open?90:0)+'deg);margin-right:2px;">'+ic("cr",16,open?"#fff":"#8A8A8A")+'</i>'
       +'<div class="grow" style="display:flex;align-items:center;gap:9px;"><span class="pill" style="background:var(--red);color:#fff;">'+esc(k)+'</span><span style="font-size:11px;color:var(--muted);">'+rows.length+' kalem</span></div>'
-      +'<div style="text-align:right;"><div class="mono" style="font-weight:800;">'+tl(tlx)+'</div><div style="font-size:10px;color:var(--muted);" class="mono">'+usd(usdx)+'</div></div></div>';
+      +'<div style="text-align:right;"><div class="mono" style="font-weight:800;color:#2ED573;">'+usd(usdEqx)+'</div><div style="font-size:10px;color:var(--muted);" class="mono">'+tl(tlx)+(ortK?" · kur "+ortK.toLocaleString("tr-TR",{maximumFractionDigits:2}):"")+'</div></div></div>';
     let body='';
     if(open){
       if(!rows.length){ body='<div class="empty" style="padding:16px;">Bu kutu için kayıt yok.</div>'; }
       else{
-        const hd='<div class="row hd"><div class="grow">KALEM</div><div style="width:110px;text-align:right;">TL</div><div style="width:95px;text-align:right;">USD</div><div style="width:96px;text-align:right;">KUTU BAŞI</div><div style="width:90px;text-align:center;">DURUM</div></div>';
-        body=hd+rows.map(e=>'<div class="row tap" data-act="masrafDetay" data-id="'+esc(e.id)+'" style="cursor:pointer;"><div class="grow"><div style="font-weight:600;" class="nowrap">'+esc(e.aciklama)+'</div>'+(e.olcu?'<div style="font-size:10.5px;color:var(--muted);" class="nowrap">'+esc(e.olcu)+' · dokun: düzenle</div>':'<div style="font-size:10.5px;color:var(--muted);">dokun: düzenle</div>')+'</div><div style="width:110px;text-align:right;" class="mono">'+(e.tlT?tl(e.tlT):"—")+'</div><div style="width:95px;text-align:right;color:var(--muted);" class="mono">'+usd(e.usdT)+'</div><div style="width:96px;text-align:right;color:#9db8f0;" class="mono">'+(e.kbtl?"₺"+e.kbtl.toLocaleString("tr-TR"):"$"+e.kbusd.toLocaleString("tr-TR"))+'</div><div style="width:90px;text-align:center;">'+pill(e.durum)+'</div></div>').join('');
+        const hd='<div class="row hd"><div class="grow">KALEM</div><div style="width:130px;text-align:right;">USD TUTAR</div><div style="width:90px;text-align:right;">KUTU BAŞI</div><div style="width:90px;text-align:center;">DURUM</div></div>';
+        body=hd+rows.map(e=>{
+          const rej=e.durum==="reddedildi";
+          const ref=e.pb!=="USD"?('<div style="font-size:9.5px;color:var(--muted);font-weight:600;margin-top:2px;">'+tl(e.tutarRaw)+(e.ortKur?" · kur "+e.ortKur.toLocaleString("tr-TR",{maximumFractionDigits:2}):"")+(rej?" · toplama girmiyor":"")+'</div>'):'';
+          return '<div class="row tap" data-act="masrafDetay" data-id="'+esc(e.id)+'" style="cursor:pointer;'+(rej?'opacity:.5;':'')+'"><div class="grow"><div style="font-weight:600;" class="nowrap">'+esc(e.aciklama)+'</div>'+(e.olcu?'<div style="font-size:10.5px;color:var(--muted);" class="nowrap">'+esc(e.olcu)+' · dokun: düzenle</div>':'<div style="font-size:10.5px;color:var(--muted);">dokun: düzenle</div>')+'</div>'
+            +'<div style="width:130px;text-align:right;">'+'<div class="mono" style="font-weight:700;color:'+(rej?'var(--muted)':'#2ED573')+';">'+usd(e.usdEq)+'</div>'+ref+'</div>'
+            +'<div style="width:90px;text-align:right;color:#9db8f0;" class="mono">'+(e.kbUsdEq?"$"+e.kbUsdEq.toLocaleString("tr-TR",{maximumFractionDigits:2}):"—")+'</div>'
+            +'<div style="width:90px;text-align:center;">'+pill(e.durum)+'</div></div>';
+        }).join('');
       }
     }
     return '<div class="box'+(rows.length?'':' ')+'" style="margin-bottom:12px;'+(rows.length?'':'opacity:.55;')+'">'+head+body+'</div>';
